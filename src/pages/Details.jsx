@@ -57,7 +57,13 @@ export default function Details() {
         setLoading(true);
         setError(null);
         const data = await movieService.getDetails(id);
-      console.log("DETAILS DATA", data);
+        console.log("[Details] DETAIL PAGE MOVIE:", data);
+        console.log("[Details] Movie info:", {
+          id: data?.subjectId,
+          title: data?.title,
+          detailPath: data?.detailPath,
+          subjectType: data?.subjectType
+        });
        setDetails(data);
       } catch (err) {
         setError('Failed to load details.');
@@ -173,7 +179,7 @@ const releaseDate =
       id="details-page"
     >
       {/* Backdrop with Overlay */}
-      <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] overflow-hidden -mb-32 sm:-mb-40">
+      <div className="relative h-80 sm:h-96 lg:h-[420px] overflow-hidden -mb-24 sm:-mb-32 lg:-mb-40">
        {poster && (
   <motion.img
     src={
@@ -184,7 +190,7 @@ const releaseDate =
     className="w-full h-full object-cover"
   />
 )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
         {/* Back Button */}
@@ -202,16 +208,16 @@ const releaseDate =
       {/* Content */}
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="flex flex-col md:flex-row gap-8"
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-10 mb-12"
         >
           {/* Poster Card */}
           <div className="flex-shrink-0">
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="w-48 sm:w-56 aspect-[2/3] rounded-xl overflow-hidden glass shadow-2xl"
+              whileHover={{ scale: 1.03 }}
+              className="w-40 sm:w-48 aspect-[2/3] rounded-lg overflow-hidden glass shadow-2xl border border-white/10"
             >
               {poster ? (
   <img
@@ -228,13 +234,13 @@ const releaseDate =
           </div>
 
           {/* Info Section */}
-          <div className="flex-1">
+          <div className="flex-1 pt-2">
             {/* Title */}
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4"
+              transition={{ delay: 0.2 }}
+              className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4 leading-tight"
             >
               {title}
             </motion.h1>
@@ -243,17 +249,17 @@ const releaseDate =
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="flex flex-wrap items-center gap-3 mb-6"
+              transition={{ delay: 0.25 }}
+              className="flex flex-wrap items-center gap-3 mb-5"
             >
               {rating && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg glass border border-amber-500/30">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-amber-500/30 text-sm">
                   <StarIcon />
                   <span className="font-bold text-amber-400">{rating}</span>
                 </div>
               )}
               {releaseDate && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg glass">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-white/10 text-sm">
                   <CalendarIcon />
                   <span className="text-gray-300">{releaseDate}</span>
                 </div>
@@ -265,15 +271,15 @@ const releaseDate =
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex flex-wrap gap-2 mb-6"
+                transition={{ delay: 0.3 }}
+                className="flex flex-wrap gap-2 mb-5"
               >
-                {genres.map((genre, i) => {
+                {genres.slice(0, 5).map((genre, i) => {
                   const genreName = typeof genre === 'string' ? genre : genre.name || genre.label;
                   return (
                     <span
                       key={i}
-                      className="px-3 py-1 rounded-full bg-red-600/20 text-red-300 text-xs font-semibold border border-red-600/30"
+                      className="px-3 py-1.5 rounded-full bg-red-600/20 text-red-300 text-xs font-semibold border border-red-600/30"
                     >
                       {genreName}
                     </span>
@@ -286,8 +292,8 @@ const releaseDate =
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-gray-300 text-base leading-relaxed mb-8 max-w-2xl"
+              transition={{ delay: 0.35 }}
+              className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 max-w-2xl line-clamp-3"
             >
               {description}
             </motion.p>
@@ -296,7 +302,7 @@ const releaseDate =
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.4 }}
               className="flex flex-wrap items-center gap-3"
             >
               <Link
@@ -306,7 +312,7 @@ const releaseDate =
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="btn-primary"
+                  className="btn-primary px-6 py-3"
                 >
                   <PlayIcon /> Watch Now
                 </motion.button>
@@ -317,14 +323,14 @@ const releaseDate =
                 whileTap={{ scale: 0.95 }}
                 onClick={handleFavorite}
                 id="detail-favorite-btn"
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold border transition-all ${
+                className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all text-sm ${
                   favorited
                     ? 'bg-red-600/20 border-red-600/50 text-red-400'
-                    : 'glass text-white hover:bg-white/20'
+                    : 'glass border-white/10 text-white hover:bg-white/10'
                 }`}
               >
                 <HeartIcon filled={favorited} />
-                {favorited ? 'Favorited' : 'Add to Favorites'}
+                {favorited ? 'Favorited' : 'Favorite'}
               </motion.button>
 
               <motion.button
@@ -332,7 +338,7 @@ const releaseDate =
                 whileTap={{ scale: 0.95 }}
                 onClick={handleShare}
                 id="detail-share-btn"
-                className="flex items-center gap-2 px-6 py-3 glass rounded-lg font-semibold text-white"
+                className="flex items-center gap-2 px-5 py-3 glass rounded-lg font-semibold text-white border border-white/10 hover:bg-white/10 text-sm transition-all"
               >
                 <ShareIcon /> Share
               </motion.button>
@@ -340,13 +346,13 @@ const releaseDate =
           </div>
         </motion.div>
 
-        {/* Similar Content */}
+        {/* Cast Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mt-16"
+          className="mb-12"
           id="cast-section"
         >
           <CastSection cast={details?.cast || details?.actors || details?.actorList || []} />
@@ -358,7 +364,6 @@ const releaseDate =
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mt-16"
           id="recommendations-section"
         >
           <MovieRow

@@ -81,15 +81,33 @@ export default function Watch() {
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const items = await movieService.getRecommendations(subjectId);
-        if (items && items.length > 0) {
-          const firstItem = items[0];
-          setDetails(firstItem);
+        console.log("[Watch] Fetching details for subjectId:", subjectId);
+        
+        const data = await movieService.getDetails(subjectId);
+        
+        console.log("[Watch] DETAIL PAGE MOVIE:", data);
+        console.log("[Watch] WATCH BUTTON PAYLOAD:", {
+          subjectId: data?.subjectId,
+          detailPath: data?.detailPath,
+          title: data?.title,
+          subjectType: data?.subjectType,
+          season: 1,
+          episode: 1
+        });
+        
+        if (data) {
+          setDetails(data);
+          console.log("[Watch] WATCH PAGE RECEIVED:", {
+            subjectId: data.subjectId,
+            title: data.title,
+            detailPath: data.detailPath
+          });
+          
           addToContinueWatching({
-            subjectId: firstItem.subjectId,
-            title: firstItem.title,
-            cover: firstItem.cover,
-            imdbRatingValue: firstItem.imdbRatingValue,
+            subjectId: data.subjectId,
+            title: data.title,
+            cover: data.cover,
+            imdbRatingValue: data.imdbRatingValue,
           });
         }
       } catch (err) {
@@ -180,6 +198,7 @@ export default function Watch() {
   
 
   const title = details?.title || details?.name || 'Loading...';
+  const isMovie = details?.subjectType === 1;
   const rating = details?.imdbRatingValue || details?.rating;
   const year = extractYear(details?.releaseDate || details?.year);
   const releaseDate = details?.releaseDate;
@@ -206,7 +225,8 @@ export default function Watch() {
     country ? { key: 'country', node: <span className="watch-meta-pill">{country}</span> } : null,
   ].filter(Boolean);
 
-  const episodeLabel = `${title} S${season}-E${episode}`;
+  const episodeLabel = isMovie ? title : `${title}`;
+  const episodeSubtitle = isMovie ? null : `Season ${season} • Episode ${episode}`;
 
   if (error) {
     return (
@@ -267,6 +287,9 @@ export default function Watch() {
 
         <div className="watch-content">
           <h1 className="watch-title">{episodeLabel}</h1>
+          {episodeSubtitle && (
+            <p className="watch-episode-subtitle">{episodeSubtitle}</p>
+          )}
 
           {metaItems.length > 0 && (
             <div className="watch-meta">

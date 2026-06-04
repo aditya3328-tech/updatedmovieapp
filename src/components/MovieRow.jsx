@@ -1,18 +1,38 @@
 import { memo, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import MovieCard from "./MovieCard";
 
 const SKELETON_COUNT = 6;
 
+const SECTION_ICONS = [
+  { match: /trending/i, icon: "🔥" },
+  { match: /cinema/i, icon: "🎬" },
+  { match: /short\s*tv|hot short/i, icon: "📺" },
+  { match: /bollywood/i, icon: "🎭" },
+  { match: /south indian/i, icon: "🌟" },
+  { match: /hollywood/i, icon: "🎥" },
+  { match: /series/i, icon: "📺" },
+  { match: /drama/i, icon: "🎭" },
+  { match: /anime/i, icon: "✨" },
+  { match: /asian/i, icon: "🌏" },
+  { match: /western/i, icon: "📡" },
+];
+
+function getSectionIcon(title = "") {
+  const found = SECTION_ICONS.find(({ match }) => match.test(title));
+  return found?.icon ?? "🎬";
+}
+
 function RowSkeleton() {
   return (
-    <div className="mb-10">
-      <div className="h-7 w-48 mb-4 rounded-md bg-gradient-to-r from-zinc-800/80 via-zinc-700/60 to-zinc-800/80 animate-pulse skeleton" />
-      <div className="flex gap-4 overflow-hidden">
+    <div className="movie-row mb-12">
+      <div className="h-10 w-56 mb-5 rounded-lg bg-white/5 animate-pulse skeleton" />
+      <div className="scroll-row flex gap-[14px] md:gap-5 overflow-hidden">
         {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)] aspect-[2/3] rounded-xl bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 animate-pulse skeleton"
+            className="movie-card-skeleton flex-shrink-0 rounded-[14px] bg-[#111827] animate-pulse skeleton"
           />
         ))}
       </div>
@@ -22,6 +42,7 @@ function RowSkeleton() {
 
 function MovieRow({ title, items, movies, isLoading }) {
   const list = useMemo(() => items ?? movies ?? [], [items, movies]);
+  const icon = useMemo(() => getSectionIcon(title), [title]);
 
   if (isLoading) {
     return <RowSkeleton />;
@@ -35,14 +56,25 @@ function MovieRow({ title, items, movies, isLoading }) {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
       viewport={{ once: true, margin: "-40px" }}
-      className="mb-10"
+      className="movie-row mb-12"
     >
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4 px-4 sm:px-6 lg:px-8">
-        {title}
-      </h2>
+      <div className="movie-row-header flex items-center justify-between gap-4 mb-5 px-4 sm:px-6 lg:px-8">
+        <h2 className="movie-row-title">
+          <span className="mr-2" aria-hidden>
+            {icon}
+          </span>
+          {title}
+        </h2>
+        <Link
+          to="/search"
+          className="movie-row-more shrink-0 text-sm font-semibold text-[#b4b4b4] transition-colors hover:text-white"
+        >
+          More &gt;
+        </Link>
+      </div>
 
-      <div className="overflow-x-auto scroll-row pb-2 px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-4 min-w-full">
+      <div className="scroll-row overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8">
+        <div className="movie-row-track flex min-w-full gap-[14px] md:gap-5">
           {list.map((item) => (
             <MovieCard key={item.subjectId} item={item} />
           ))}

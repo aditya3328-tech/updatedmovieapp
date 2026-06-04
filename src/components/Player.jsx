@@ -6,7 +6,7 @@ import SubtitleSelector from "./SubtitleSelector";
 
 /* SVG Icons */
 const PlayIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
     <path d="M8 5v14l11-7z" />
   </svg>
 );
@@ -181,7 +181,7 @@ export default function Player({
 
   if (!isStreamReady) {
     return (
-      <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden glass-card flex items-center justify-center p-6">
+      <div className="relative w-full aspect-video bg-black rounded-[12px] overflow-hidden glass-card flex items-center justify-center p-6">
         <div className="text-center">
           <p className="text-lg font-semibold text-white mb-2">Loading Stream...</p>
           <p className="text-sm text-[#cbd5e1]">
@@ -362,7 +362,7 @@ export default function Player({
     <div
       ref={containerRef}
       id="video-player-container"
-      className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group cursor-pointer"
+      className="relative w-full aspect-video bg-black rounded-[12px] overflow-hidden group cursor-pointer"
       onMouseMove={resetHideTimer}
       onMouseLeave={() => playing && setShowControls(false)}
       onClick={togglePlay}
@@ -404,7 +404,7 @@ export default function Player({
       {/* Center Play Button */}
       {!playing && (
         <div className="absolute inset-0 flex items-center justify-center z-10 animate-fade-in">
-          <div className="w-20 h-20 rounded-full bg-[#6366f1]/80 backdrop-blur-sm flex items-center justify-center shadow-2xl shadow-[#6366f1]/30 hover:scale-110 transition-transform">
+          <div className="w-24 h-24 rounded-full bg-[#E50914] backdrop-blur-sm flex items-center justify-center shadow-2xl shadow-[#E50914]/50 hover:scale-125 hover:shadow-[#E50914]/70 transition-all duration-300 cursor-pointer">
             <PlayIcon />
           </div>
         </div>
@@ -412,8 +412,8 @@ export default function Player({
 
       {/* Title Overlay */}
       {showControls && title && (
-        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent z-20 transition-opacity duration-300">
-          <h3 className="text-white text-sm md:text-base font-semibold truncate">
+        <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300">
+          <h3 className="text-white text-lg md:text-xl font-semibold truncate">
             {title}
           </h3>
         </div>
@@ -421,22 +421,22 @@ export default function Player({
 
       {/* Controls Overlay */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 player-controls p-3 md:p-4 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute bottom-0 left-0 right-0 z-20 player-controls px-3 md:px-4 py-3 md:py-4 transition-opacity duration-300 bg-black/75 backdrop-blur-[10px] ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Progress Bar */}
         <div
           ref={progressRef}
-          className="w-full h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/progress relative"
+          className="w-full h-1.5 bg-[#2A2A2A] rounded-full mb-3 cursor-pointer group/progress relative"
           onClick={handleSeek}
         >
           <div
-            className="absolute top-0 left-0 h-full bg-white/10 rounded-full"
+            className="absolute top-0 left-0 h-full bg-[#3A3A3A] rounded-full"
             style={{ width: `${bufferedProgress}%` }}
           />
           <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-full transition-all"
+            className="absolute top-0 left-0 h-full bg-[#E50914] hover:bg-[#FF1B2D] rounded-full transition-all"
             style={{ width: `${progress}%` }}
           >
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity" />
@@ -450,7 +450,7 @@ export default function Player({
             {onPrevEpisode && (
               <button
                 onClick={onPrevEpisode}
-                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                 id="prev-episode-btn"
                 title="Previous Episode"
               >
@@ -461,8 +461,9 @@ export default function Player({
             {/* Play/Pause */}
             <button
               onClick={togglePlay}
-              className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
               id="play-pause-btn"
+              title={playing ? "Pause" : "Play"}
             >
               {playing ? <PauseIcon /> : <PlayIcon />}
             </button>
@@ -471,7 +472,7 @@ export default function Player({
             {onNextEpisode && (
               <button
                 onClick={onNextEpisode}
-                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                 id="next-episode-btn"
                 title="Next Episode"
               >
@@ -483,8 +484,9 @@ export default function Player({
             <div className="hidden md:flex items-center gap-1 group/vol">
               <button
                 onClick={toggleMute}
-                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                 id="mute-btn"
+                title="Mute"
               >
                 <VolumeIcon muted={muted} />
               </button>
@@ -495,10 +497,20 @@ export default function Player({
                 step="0.05"
                 value={muted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-0 group-hover/vol:w-20 transition-all duration-300 accent-[#6366f1] h-1 cursor-pointer"
+                className="w-0 group-hover/vol:w-20 transition-all duration-300 accent-[#E50914] h-1 cursor-pointer"
                 id="volume-slider"
               />
             </div>
+
+            {/* Volume Mobile */}
+            <button
+              onClick={toggleMute}
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+              id="mute-btn-mobile"
+              title="Mute"
+            >
+              <VolumeIcon muted={muted} />
+            </button>
 
             {/* Time */}
             <span className="text-xs text-white/80 ml-1 tabular-nums">
@@ -512,8 +524,9 @@ export default function Player({
             <div className="relative">
               <button
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="px-2 py-1.5 rounded-xl hover:bg-white/10 text-white text-xs font-semibold transition-colors"
+                className="px-2 py-1.5 rounded-lg hover:bg-white/10 text-white text-xs font-semibold transition-colors"
                 id="speed-btn"
+                title="Playback speed"
               >
                 {playbackSpeed}x
               </button>
@@ -524,7 +537,7 @@ export default function Player({
                     onClick={() => setShowSpeedMenu(false)}
                   />
                   <div
-                    className="absolute bottom-full mb-2 right-0 z-50 bg-[#1e1e42]/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden animate-fade-in"
+                    className="absolute bottom-full mb-2 right-0 z-50 bg-black/90 backdrop-blur-xl rounded-lg border border-white/10 shadow-2xl overflow-hidden animate-fade-in"
                     id="speed-menu"
                   >
                     {SPEED_OPTIONS.map((speed) => (
@@ -532,7 +545,7 @@ export default function Player({
                         key={speed}
                         onClick={() => handleSpeedChange(speed)}
                         className={`block w-full px-4 py-2 text-sm text-left transition-colors ${playbackSpeed === speed
-                          ? "text-[#6366f1] bg-[#6366f1]/10"
+                          ? "text-[#E50914] bg-[#E50914]/10"
                           : "text-[#b0b0d0] hover:text-white hover:bg-white/5"
                           }`}
                       >
@@ -561,7 +574,7 @@ export default function Player({
             {/* PiP */}
             <button
               onClick={togglePiP}
-              className="p-2 rounded-xl hover:bg-white/10 transition-colors hidden md:block"
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors hidden md:block"
               id="pip-btn"
               title="Picture in Picture"
             >
@@ -571,8 +584,9 @@ export default function Player({
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
               id="fullscreen-btn"
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             >
               {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
             </button>

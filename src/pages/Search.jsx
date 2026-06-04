@@ -1,11 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import SearchBar from '../components/SearchBar';
-import SuggestionsDropdown from '../components/SuggestionsDropdown';
 import SearchResults from '../components/SearchResults';
 import useSearch from '../hooks/useSearch';
-import useSearchSuggestions from '../hooks/useSearchSuggestions';
 import movieService from '../services/movieService';
 
 const FALLBACK_KEYWORDS = [
@@ -21,10 +18,6 @@ const FALLBACK_KEYWORDS = [
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialQuery = searchParams.get('q') || '';
-
-  const [inputValue, setInputValue] = useState(initialQuery);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [trendingKeywords, setTrendingKeywords] = useState(FALLBACK_KEYWORDS);
 
   const {
@@ -38,15 +31,8 @@ export default function Search() {
     loadMore,
   } = useSearch();
 
-  const { suggestions, loading: suggestionsLoading } = useSearchSuggestions(
-    inputValue,
-    dropdownOpen,
-  );
-
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
-  const blurTimerRef = useRef(null);
-  const initializedRef = useRef(false);
 
   useEffect(() => {
     movieService
@@ -60,66 +46,23 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
-    if (initializedRef.current || !initialQuery) return;
-    initializedRef.current = true;
-    setInputValue(initialQuery);
-    runSearch(initialQuery);
-  }, [initialQuery, runSearch]);
+    const q = searchParams.get('q') || '';
+    if (q) {
+      runSearch(q);
+    } else {
+      clearSearch();
+    }
+  }, [searchParams, runSearch, clearSearch]);
 
   const executeSearch = useCallback(
     (term) => {
       const trimmed = term.trim();
       if (!trimmed) return;
-
-      setInputValue(trimmed);
-      setDropdownOpen(false);
       setSearchParams({ q: trimmed }, { replace: true });
       runSearch(trimmed);
     },
     [runSearch, setSearchParams],
   );
-
-  const handleSuggestionSelect = useCallback(
-    (word) => {
-      executeSearch(word);
-    },
-    [executeSearch],
-  );
-
-  const handleSubmit = useCallback(
-    (term) => {
-      executeSearch(term);
-    },
-    [executeSearch],
-  );
-
-  const handleInputChange = useCallback(
-    (value) => {
-      setInputValue(value);
-      if (!value.trim()) {
-        clearSearch();
-        setSearchParams({}, { replace: true });
-      } else {
-        setDropdownOpen(true);
-      }
-    },
-    [clearSearch, setSearchParams],
-  );
-
-  const handleFocus = useCallback(() => {
-    if (blurTimerRef.current) {
-      clearTimeout(blurTimerRef.current);
-    }
-    if (inputValue.trim()) {
-      setDropdownOpen(true);
-    }
-  }, [inputValue]);
-
-  const handleBlur = useCallback(() => {
-    blurTimerRef.current = setTimeout(() => {
-      setDropdownOpen(false);
-    }, 150);
-  }, []);
 
   const setupObserver = useCallback(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -150,38 +93,9 @@ export default function Search() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen pt-20 md:pt-24 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-black"
+      className="min-h-screen pt-[120px] md:pt-[100px] pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-[#05070d]"
       id="search-page"
     >
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-20 left-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-20 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl opacity-50" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-10 relative"
-      >
-        <SearchBar
-          value={inputValue}
-          onChange={handleInputChange}
-          onSubmit={handleSubmit}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          autoFocus
-          placeholder="Search movies, series, anime..."
-        />
-
-        <SuggestionsDropdown
-          visible={dropdownOpen}
-          suggestions={suggestions}
-          loading={suggestionsLoading}
-          onSelect={handleSuggestionSelect}
-        />
-      </motion.div>
-
       {showEmptyState && (
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -193,8 +107,8 @@ export default function Search() {
             🎬
           </div>
           <h3 className="text-2xl font-bold text-white mb-3">Start Searching</h3>
-          <p className="text-gray-400 text-center max-w-md mb-8">
-            Explore thousands of movies, TV series, and anime. Pick a trending search below.
+          <p className="text-[#b4b4b4] text-center max-w-md mb-8">
+            Use the search bar above to explore movies, TV series, and anime, or pick a trending topic below.
           </p>
 
           <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
@@ -208,7 +122,7 @@ export default function Search() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => executeSearch(keyword)}
-                className="px-4 py-2.5 rounded-lg bg-white/10 hover:bg-red-600/30 border border-white/20 hover:border-red-600/50 text-sm font-medium text-white transition-all"
+                className="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 text-sm font-medium text-white transition-all"
               >
                 {keyword}
               </motion.button>

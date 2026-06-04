@@ -46,7 +46,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <PlayerProvider>
-        <div className="min-h-screen bg-[#0a0a1a]">
+        <div className="min-h-screen bg-[#05070d]">
           <Navbar />
           <main className="flex-1">
             <Suspense fallback={<PageLoader />}>

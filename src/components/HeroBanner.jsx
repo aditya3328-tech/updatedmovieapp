@@ -100,7 +100,7 @@ export default function HeroBanner() {
   if (loading) {
     return (
       <div
-        className="w-full h-[60vh] md:h-[70vh] lg:h-[85vh] bg-gradient-to-br from-zinc-900 to-black animate-pulse"
+        className="hero-banner-skeleton w-full h-[55vh] md:h-[75vh] bg-gradient-to-br from-zinc-900 to-[#05070d] animate-pulse"
         aria-busy="true"
         aria-label="Loading hero banner"
       />
@@ -116,7 +116,7 @@ export default function HeroBanner() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="relative w-full h-[60vh] md:h-[70vh] lg:h-[85vh] overflow-hidden bg-black mb-6"
+      className="hero-banner relative w-full h-[55vh] md:h-[75vh] overflow-hidden bg-[#05070d] mb-4 md:mb-6"
       aria-roledescription="carousel"
       aria-label="Featured titles"
     >

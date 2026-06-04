@@ -66,18 +66,14 @@ export default function Home() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="relative min-h-screen pt-16 md:pt-20 pb-32 bg-black overflow-hidden"
+      className="home-page relative min-h-screen bg-[#05070d] overflow-hidden pb-24 md:pb-32"
     >
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl opacity-50" />
-      </div>
 
       <HeroBanner />
 
       <div className="max-w-[1920px] mx-auto">
         {rowsLoading ? (
-          <div className="px-4 sm:px-6 lg:px-8 space-y-2">
+          <div className="space-y-12">
             {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
               <MovieRow key={i} isLoading />
             ))}
@@ -87,7 +83,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="space-y-2 px-4 sm:px-6 lg:px-8"
+            className="space-y-0"
           >
             {homeSections.map((section) => (
               <MovieRow

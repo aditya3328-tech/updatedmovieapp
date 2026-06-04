@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 
 const SearchIconSVG = () => (
   <svg
-    width="22"
-    height="22"
+    width="20"
+    height="20"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -16,8 +16,8 @@ const SearchIconSVG = () => (
 
 const ClearIcon = () => (
   <svg
-    width="18"
-    height="18"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -37,9 +37,11 @@ export default function SearchBar({
   placeholder = 'Search movies, anime, tv shows...',
   autoFocus = false,
   className = '',
+  variant = 'default',
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
+  const isNavbar = variant === 'navbar';
 
   useEffect(() => {
     if (autoFocus) {
@@ -58,31 +60,79 @@ export default function SearchBar({
     inputRef.current?.focus();
   };
 
+  if (isNavbar) {
+    return (
+      <form
+        onSubmit={handleSubmit}
+        className={`navbar-search-form ${className}`}
+        id="navbar-search-bar"
+      >
+        <div
+          className={`navbar-search-inner flex items-center ${
+            isFocused ? 'navbar-search-inner--focused' : ''
+          }`}
+        >
+          <span className="navbar-search-icon pl-4 text-gray-400 flex-shrink-0" aria-hidden>
+            <SearchIconSVG />
+          </span>
+          <input
+            ref={inputRef}
+            type="search"
+            value={value}
+            onChange={(e) => onChange?.(e.target.value)}
+            onFocus={() => {
+              setIsFocused(true);
+              onFocus?.();
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+              onBlur?.();
+            }}
+            placeholder={placeholder}
+            autoComplete="off"
+            aria-label="Search"
+            className="navbar-search-input flex-1 bg-transparent px-4 text-white text-sm placeholder:text-gray-500 outline-none"
+          />
+          {value && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="mr-4 p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all flex-shrink-0"
+              aria-label="Clear search"
+            >
+              <ClearIcon />
+            </button>
+          )}
+        </div>
+      </form>
+    );
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
-      className={`relative w-full max-w-3xl mx-auto ${className}`}
+      className={`relative w-full max-w-2xl mx-auto ${className}`}
       id="search-bar"
     >
       <div
-        className={`absolute inset-0 rounded-3xl blur-2xl transition-all duration-500 ${
-          isFocused ? 'bg-indigo-500/20 opacity-100' : 'bg-transparent opacity-0'
+        className={`absolute inset-0 rounded-xl blur-2xl transition-all duration-500 ${
+          isFocused ? 'bg-indigo-500/30 opacity-100' : 'bg-transparent opacity-0'
         }`}
       />
 
       <div
         className={`
-          relative flex items-center rounded-3xl border backdrop-blur-2xl transition-all duration-300 overflow-hidden
+          relative flex items-center rounded-xl border backdrop-blur-xl transition-all duration-300 overflow-hidden
           ${
             isFocused
-              ? 'border-indigo-500/40 bg-white/10 shadow-[0_0_40px_rgba(99,102,241,0.25)]'
-              : 'border-white/10 bg-white/5 hover:border-white/20'
+              ? 'border-indigo-500/50 bg-white/12 shadow-[0_0_50px_rgba(99,102,241,0.3)]'
+              : 'border-white/12 bg-white/8 hover:border-white/20 hover:bg-white/10'
           }
         `}
       >
         <div
-          className={`pl-5 transition-all duration-300 ${
-            isFocused ? 'text-indigo-400 scale-110' : 'text-gray-500'
+          className={`px-5 flex-shrink-0 transition-all duration-300 ${
+            isFocused ? 'text-indigo-400' : 'text-gray-500'
           }`}
         >
           <SearchIconSVG />
@@ -105,26 +155,19 @@ export default function SearchBar({
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
-          className="flex-1 bg-transparent px-4 py-4 text-white text-base placeholder:text-gray-500 outline-none"
+          className="flex-1 bg-transparent px-2 py-5 text-white text-lg placeholder:text-gray-500 outline-none"
         />
 
         {value && (
           <button
             type="button"
             onClick={handleClear}
-            className="mr-2 p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            className="px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all flex-shrink-0"
             aria-label="Clear search"
           >
             <ClearIcon />
           </button>
         )}
-
-        <button
-          type="submit"
-          className="m-2 px-6 py-3 rounded-2xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/20"
-        >
-          Search
-        </button>
       </div>
     </form>
   );
