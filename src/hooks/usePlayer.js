@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import movieService from "../services/movieService";
 
-export default function usePlayer(subjectId, detailPath) {
+export default function usePlayer(subjectId, detailPath, subjectType) {
 console.log("USEPLAYER FILE");
 console.log("subjectId =", subjectId);
 console.log("detailPath =", detailPath);
@@ -65,11 +65,15 @@ const fetchCaptions = useCallback(async (streamId) => {
       setError(null);
       setSelectedStream(null);
 
+      const isMovie = subjectType === 1;
+      const se = isMovie ? 0 : season;
+      const ep = isMovie ? 0 : episode;
+
       const response = await movieService.getStreams(
         subjectId,
         detailPath,
-        season,
-        episode
+        se,
+        ep
       );
 
       console.log("GET STREAM RESPONSE:", response);
@@ -122,6 +126,7 @@ const fetchCaptions = useCallback(async (streamId) => {
   }, [
     subjectId,
     detailPath,
+    subjectType,
     season,
     episode,
     fetchCaptions,

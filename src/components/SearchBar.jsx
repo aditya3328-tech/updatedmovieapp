@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from 'react';
 
 const SearchIconSVG = () => (
   <svg
@@ -30,16 +29,17 @@ const ClearIcon = () => (
 );
 
 export default function SearchBar({
-  value = "",
+  value = '',
   onChange,
   onSubmit,
-  placeholder = "Search movies, anime, tv shows...",
+  onFocus,
+  onBlur,
+  placeholder = 'Search movies, anime, tv shows...',
   autoFocus = false,
-  className = "",
+  className = '',
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (autoFocus) {
@@ -49,15 +49,12 @@ export default function SearchBar({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!value.trim()) return;
-
-    onSubmit?.(value);
-    navigate(`/search?q=${encodeURIComponent(value)}`);
+    onSubmit?.(value.trim());
   };
 
   const handleClear = () => {
-    onChange?.("");
+    onChange?.('');
     inputRef.current?.focus();
   };
 
@@ -65,115 +62,66 @@ export default function SearchBar({
     <form
       onSubmit={handleSubmit}
       className={`relative w-full max-w-3xl mx-auto ${className}`}
+      id="search-bar"
     >
-      {/* Glow */}
       <div
         className={`absolute inset-0 rounded-3xl blur-2xl transition-all duration-500 ${
-          isFocused
-            ? "bg-indigo-500/20 opacity-100"
-            : "bg-transparent opacity-0"
+          isFocused ? 'bg-indigo-500/20 opacity-100' : 'bg-transparent opacity-0'
         }`}
       />
 
       <div
         className={`
-          relative
-          flex
-          items-center
-          rounded-3xl
-          border
-          backdrop-blur-2xl
-          transition-all
-          duration-300
-          overflow-hidden
-
+          relative flex items-center rounded-3xl border backdrop-blur-2xl transition-all duration-300 overflow-hidden
           ${
             isFocused
-              ? "border-indigo-500/40 bg-white/10 shadow-[0_0_40px_rgba(99,102,241,0.25)]"
-              : "border-white/10 bg-white/5 hover:border-white/20"
+              ? 'border-indigo-500/40 bg-white/10 shadow-[0_0_40px_rgba(99,102,241,0.25)]'
+              : 'border-white/10 bg-white/5 hover:border-white/20'
           }
         `}
       >
-        {/* Search Icon */}
         <div
           className={`pl-5 transition-all duration-300 ${
-            isFocused
-              ? "text-indigo-400 scale-110"
-              : "text-gray-500"
+            isFocused ? 'text-indigo-400 scale-110' : 'text-gray-500'
           }`}
         >
           <SearchIconSVG />
         </div>
 
-        {/* Input */}
         <input
           ref={inputRef}
-          type="text"
+          type="search"
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={() => {
+            setIsFocused(true);
+            onFocus?.();
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
           placeholder={placeholder}
-          className="
-            flex-1
-            bg-transparent
-            px-4
-            py-4
-            text-white
-            text-base
-            placeholder:text-gray-500
-            outline-none
-          "
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-controls="search-suggestions"
+          className="flex-1 bg-transparent px-4 py-4 text-white text-base placeholder:text-gray-500 outline-none"
         />
 
-        {/* Shortcut Hint */}
-        {!value && (
-          <div className="hidden md:flex items-center mr-3">
-            <span className="px-2 py-1 text-xs rounded-lg bg-white/5 border border-white/10 text-gray-500">
-              ⌘K
-            </span>
-          </div>
-        )}
-
-        {/* Clear Button */}
         {value && (
           <button
             type="button"
             onClick={handleClear}
-            className="
-              mr-2
-              p-2
-              rounded-full
-              text-gray-400
-              hover:text-white
-              hover:bg-white/10
-              transition-all
-            "
+            className="mr-2 p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            aria-label="Clear search"
           >
             <ClearIcon />
           </button>
         )}
 
-        {/* Search Button */}
         <button
           type="submit"
-          className="
-            m-2
-            px-6
-            py-3
-            rounded-2xl
-            font-semibold
-            text-white
-            bg-gradient-to-r
-            from-indigo-500
-            via-purple-500
-            to-pink-500
-            hover:scale-105
-            transition-all
-            duration-300
-            shadow-lg
-            shadow-purple-500/20
-          "
+          className="m-2 px-6 py-3 rounded-2xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/20"
         >
           Search
         </button>

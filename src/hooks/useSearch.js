@@ -1,34 +1,33 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import movieService from '../services/movieService';
 
+const PER_PAGE = 28;
+
 /**
- * useSearch — Debounced search hook with infinite scroll support
- * @param {number} debounceMs - Debounce delay in ms
+ * Search results from POST /subject/search (explicit runSearch — not on every keystroke)
  */
-export default function useSearch(debounceMs = 400) {
+export default function useSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const debounceTimer = useRef(null);
   const abortController = useRef(null);
   const loadingRef = useRef(false);
 
-  /* Perform the search */
   const performSearch = useCallback(async (searchQuery, pageNum, append = false) => {
-    if (!searchQuery.trim()) {
+    const trimmed = searchQuery?.trim();
+    if (!trimmed) {
       setResults([]);
       setLoading(false);
       setHasMore(false);
+      setError(null);
       return;
     }
 
-    /* Prevent concurrent requests */
-    if (loadingRef.current) return;
+    if (loadingRef.current && !append) return;
 
-    /* Cancel previous request */
     if (abortController.current) {
       abortController.current.abort();
     }
@@ -38,12 +37,11 @@ export default function useSearch(debounceMs = 400) {
       setLoading(true);
       loadingRef.current = true;
       setError(null);
-      const response = await movieService.search(searchQuery, pageNum, {
+
+      const items = await movieService.search(trimmed, pageNum, {
         signal: abortController.current.signal,
       });
-      const items = Array.isArray(response) ? response : [];
-      console.log("API RESPONSE:", response);
-      console.log("ITEMS:", items);
+
       const newResults = Array.isArray(items) ? items : [];
 
       if (append) {
@@ -52,13 +50,13 @@ export default function useSearch(debounceMs = 400) {
         setResults(newResults);
       }
 
-      /* Only allow more loading if we got a full page of results */
-      setHasMore(newResults.length >= 20);
+      setHasMore(newResults.length >= PER_PAGE);
+      setPage(pageNum);
     } catch (err) {
       if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
         setError('Search failed. Please try again.');
         setHasMore(false);
-        console.error('[useSearch] Error:', err);
+        if (!append) setResults([]);
       }
     } finally {
       setLoading(false);
@@ -66,51 +64,32 @@ export default function useSearch(debounceMs = 400) {
     }
   }, []);
 
-  /* Debounced query handler */
-  useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    if (!query.trim()) {
-      setResults([]);
+  const runSearch = useCallback(
+    (searchQuery) => {
+      setQuery(searchQuery);
       setPage(1);
-      setHasMore(false);
-      return;
+      performSearch(searchQuery, 1, false);
+    },
+    [performSearch],
+  );
+
+  const clearSearch = useCallback(() => {
+    if (abortController.current) {
+      abortController.current.abort();
     }
+    setQuery('');
+    setResults([]);
+    setPage(1);
+    setHasMore(false);
+    setError(null);
+    setLoading(false);
+  }, []);
 
-    debounceTimer.current = setTimeout(() => {
-      setPage(1);
-      performSearch(query, 1, false);
-    }, debounceMs);
-
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, [query, debounceMs, performSearch]);
-
-  /* Load more for infinite scroll */
   const loadMore = useCallback(() => {
     if (!loadingRef.current && hasMore && query.trim()) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      performSearch(query, nextPage, true);
+      performSearch(query, page + 1, true);
     }
   }, [hasMore, query, page, performSearch]);
-
-  /* Cleanup on unmount */
-  useEffect(() => {
-    return () => {
-      if (abortController.current) {
-        abortController.current.abort();
-      }
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, []);
 
   return {
     query,
@@ -119,6 +98,8 @@ export default function useSearch(debounceMs = 400) {
     loading,
     error,
     hasMore,
+    runSearch,
+    clearSearch,
     loadMore,
   };
 }

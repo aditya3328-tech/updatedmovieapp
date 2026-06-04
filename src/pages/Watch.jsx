@@ -67,7 +67,7 @@ export default function Watch() {
     nextEpisode,
     prevEpisode,
     updateWatchHistory,
-  } = usePlayer(details?.subjectId, detailPath);
+  } = usePlayer(details?.subjectId, detailPath, details?.subjectType);
 
   const { addToContinueWatching } = usePlayerContext();
   const [recommendations, setRecommendations] = useState([]);
@@ -121,6 +121,7 @@ export default function Watch() {
     const fetchRecs = async () => {
       try {
         setRecLoading(true);
+
         const items = await movieService.search('popular', 1);
         setRecommendations(items || []);
       } catch (err) {
@@ -161,11 +162,6 @@ export default function Watch() {
   
     return fromDetails || 1;
   }, [details]);
-  console.log(
-  "DETAILS JSON",
-  JSON.stringify(details, null, 2)
-);
-  console.log("EPISODES FULL", episodesData);
   const seasons = useMemo(
     () => Array.from({ length: seasonCount }, (_, i) => i + 1),
     [seasonCount]

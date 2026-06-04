@@ -4,9 +4,14 @@ import { useNavigate } from "react-router-dom";
 const FALLBACK_POSTER =
   "https://via.placeholder.com/300x450/0F1117/E50914?text=StreamWave";
 
-function MovieCard({ item, movie }) {
+function MovieCard({ item, movie, layout = "row" }) {
   const navigate = useNavigate();
   const data = item || movie;
+
+  const widthClass =
+    layout === "grid"
+      ? "w-full"
+      : "w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)]";
 
   const posterUrl = useMemo(
     () => data?.cover?.url || FALLBACK_POSTER,
@@ -15,7 +20,7 @@ function MovieCard({ item, movie }) {
 
   const handleClick = useCallback(() => {
     if (data?.subjectId) {
-      navigate(`/watch/${data.subjectId}`);
+      navigate(`/details/${data.subjectId}`);
     }
   }, [data?.subjectId, navigate]);
 
@@ -37,7 +42,7 @@ function MovieCard({ item, movie }) {
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className="movie-card group flex-shrink-0 w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#E50914] focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-xl"
+      className={`movie-card group flex-shrink-0 ${widthClass} cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#E50914] focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-xl`}
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[#0F1117] border border-white/10">
         <img

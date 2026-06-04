@@ -4,8 +4,14 @@
 
 const ENDPOINTS = {
   // Content Search & Discovery
-  /** Search movies, TV series, anime by keyword */
-  SEARCH: "/subject/everyone-search",
+  /** Autocomplete suggestions (dropdown only) */
+  SEARCH_SUGGEST: "/subject/search-suggest",
+
+  /** Full search results with posters and metadata */
+  SEARCH: "/subject/search",
+
+  /** Trending / popular keywords only (title strings, not cards) */
+  EVERYONE_SEARCH: "/subject/everyone-search",
 
   // Playback & Streaming
   /** Get playback streams for a subject */

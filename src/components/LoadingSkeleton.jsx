@@ -21,7 +21,7 @@ export default function LoadingSkeleton({ count = 6, type = 'card' }) {
       <motion.div
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 1.5, repeat: Infinity }}
-        className="w-full h-[280px] sm:h-[350px] lg:h-[500px] bg-gradient-to-br from-gray-700/40 to-gray-800/40 rounded-lg skeleton mb-8"
+        className="w-full h-[60vh] md:h-[70vh] lg:h-[85vh] bg-gradient-to-br from-gray-700/40 to-gray-800/40 skeleton mb-6"
       />
     );
   }

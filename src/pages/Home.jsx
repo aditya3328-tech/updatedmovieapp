@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import movieService from "../services/movieService";
 import HeroBanner from "../components/HeroBanner";
@@ -23,10 +23,10 @@ const SKELETON_ROW_COUNT = 4;
 
 export default function Home() {
   const [homeSections, setHomeSections] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [rowsLoading, setRowsLoading] = useState(true);
 
-  const loadHome = useCallback(async () => {
-    setLoading(true);
+  const loadHomeRows = useCallback(async () => {
+    setRowsLoading(true);
 
     const results = await Promise.allSettled(
       rankingSections.map(async (section) => {
@@ -54,57 +54,29 @@ export default function Home() {
       .filter((section) => section && section.items.length > 0);
 
     setHomeSections(sections);
-    setLoading(false);
+    setRowsLoading(false);
   }, []);
 
   useEffect(() => {
-    loadHome();
-  }, [loadHome]);
-
-  const featured = useMemo(
-    () => homeSections[0]?.items?.[0] ?? null,
-    [homeSections],
-  );
-
-  const heroMovies = useMemo(
-    () => homeSections[0]?.items?.slice(0, 5) ?? [],
-    [homeSections],
-  );
-
-  const handleAddToWatchlist = useCallback(() => {
-    console.log("Added to watchlist:", featured?.title);
-  }, [featured?.title]);
+    loadHomeRows();
+  }, [loadHomeRows]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="relative min-h-screen pt-20 md:pt-24 pb-32 bg-black overflow-hidden"
+      className="relative min-h-screen pt-16 md:pt-20 pb-32 bg-black overflow-hidden"
     >
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl opacity-50" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl opacity-50" />
       </div>
 
-      <div className="max-w-[1920px] mx-auto">
-        {loading ? (
-          <div className="px-4 sm:px-6 lg:px-8">
-            <LoadingSkeleton type="hero" />
-          </div>
-        ) : (
-          featured && (
-            <div className="px-4 sm:px-6 lg:px-8 mb-4">
-              <HeroBanner
-                movie={featured}
-                movies={heroMovies.length > 0 ? heroMovies : [featured]}
-                onAddToWatchlist={handleAddToWatchlist}
-              />
-            </div>
-          )
-        )}
+      <HeroBanner />
 
-        {loading ? (
+      <div className="max-w-[1920px] mx-auto">
+        {rowsLoading ? (
           <div className="px-4 sm:px-6 lg:px-8 space-y-2">
             {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
               <MovieRow key={i} isLoading />
@@ -115,7 +87,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="space-y-2"
+            className="space-y-2 px-4 sm:px-6 lg:px-8"
           >
             {homeSections.map((section) => (
               <MovieRow

@@ -76,15 +76,13 @@ export default function Details() {
     const fetchRecs = async () => {
       try {
         setRecLoading(true);
-        const response = await movieService.getRecommendations(id);
-        const items = response?.data?.list || response?.data?.items || response?.data || [];
+        const items = await movieService.getRecommendations(id);
         setRecommendations(Array.isArray(items) ? items : []);
       } catch (err) {
         console.error('[Details] Recommendations error:', err);
         try {
-          const fallback = await movieService.search('popular', 1);
-          const items = fallback?.data?.list || fallback?.data?.items || fallback?.data || [];
-          setRecommendations(Array.isArray(items) ? items : []);
+          const fallback = await movieService.getRankingContent('4516404531735022304', 1, 12);
+          setRecommendations(fallback?.subjectList || []);
         } catch {
           setRecommendations([]);
         }

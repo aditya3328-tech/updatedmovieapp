@@ -8,13 +8,46 @@ import ENDPOINTS from "../api/endpoints";
 
 const movieService = {
   /**
+   * Autocomplete suggestions for the search dropdown
+   * @param {string} keyword
+   * @param {Object} options
+   * @param {AbortSignal} options.signal
+   * @returns {Promise<string[]>} Up to 10 suggestion strings
+   */
+  searchSuggest: async (keyword, { signal } = {}) => {
+    if (!keyword?.trim()) return [];
+
+    try {
+      const response = await apiClient.post(
+        ENDPOINTS.SEARCH_SUGGEST,
+        { keyword: keyword.trim() },
+        { signal },
+      );
+
+      const items = response?.data?.data?.items || [];
+      return items
+        .map((item) => item?.word)
+        .filter(Boolean)
+        .slice(0, 10);
+    } catch (error) {
+      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+        log(
+          "error",
+          `[movieService] searchSuggest() failed for: "${keyword}"`,
+          error.message,
+        );
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Search for movies, TV series, and anime by keyword
    * @param {string} query - Search term
    * @param {number} page - Page number (default: 1)
    * @param {Object} options - Additional options
    * @param {AbortSignal} options.signal - AbortController signal for cancellation
-   * @returns {Promise<Object>} Response with data, status, headers
-   * @throws {Error} If request fails
+   * @returns {Promise<Array>} Subject items with cover, rating, etc.
    */
   search: async (query, page = 1, { signal } = {}) => {
     try {
@@ -23,23 +56,23 @@ const movieService = {
         `[movieService] search() called with query: "${query}", page: ${page}`,
       );
 
-      const config = {
-        params: {
+      const response = await apiClient.post(
+        ENDPOINTS.SEARCH,
+        {
           keyword: query,
           page,
-          perPage: 24,
+          perPage: 28,
         },
-      };
-      if (signal) config.signal = signal;
+        { signal },
+      );
 
-      const response = await apiClient.get(ENDPOINTS.SEARCH, config);
-      const results = response?.data?.data?.everyoneSearch || [];
+      const items = response?.data?.data?.items || [];
 
       log(
         "debug",
-        `[movieService] search() success: ${results.length} items returned`,
+        `[movieService] search() success: ${items.length} items returned`,
       );
-      return results;
+      return items;
     } catch (error) {
       log(
         "error",
@@ -51,13 +84,52 @@ const movieService = {
   },
 
   /**
+   * Trending / popular search keywords (titles only — not for result cards)
+   * @param {number} page
+   * @param {Object} options
+   * @param {AbortSignal} options.signal
+   * @returns {Promise<string[]>}
+   */
+  everyoneSearch: async (page = 1, { signal } = {}) => {
+    try {
+      const response = await apiClient.post(
+        ENDPOINTS.EVERYONE_SEARCH,
+        { page, perPage: 20 },
+        { signal },
+      );
+
+      const list =
+        response?.data?.data?.everyoneSearch ||
+        response?.data?.data?.items ||
+        [];
+
+      return list
+        .map((entry) => entry?.title || entry?.word)
+        .filter(Boolean);
+    } catch (error) {
+      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+        log("error", "[movieService] everyoneSearch() failed", error.message);
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * @deprecated Use everyoneSearch() for keyword chips only
+   */
+  getTrending: async (page = 1, options = {}) => {
+    return movieService.everyoneSearch(page, options);
+  },
+
+  /**
+   * @deprecated Use everyoneSearch() for keyword chips only
+   */
+  getPopular: async (page = 1, options = {}) => {
+    return movieService.everyoneSearch(page, options);
+  },
+
+  /**
    * Get playback streams for a subject episode
-   * @param {string} subjectId - Subject/Title ID
-   * @param {string} detailPath - Title detail path
-   * @param {number} se - Season number (default: 0)
-   * @param {number} ep - Episode number (default: 0)
-   * @returns {Promise<Object>} Playback response data
-   * @throws {Error} If request fails
    */
   async getStreams(subjectId, detailPath, se = 1, ep = 1) {
     const response = await fetch(
@@ -66,65 +138,31 @@ const movieService = {
 
     const data = await response.json();
 
-    console.log("BACKEND RESPONSE", data);
-
     const streams = data?.streams?.length
       ? data.streams
       : data?.attempts?.flatMap((a) => a.streams || []) || [];
-
-    console.log("FINAL STREAMS", streams);
 
     return {
       streams,
     };
   },
- getDetails: async (subjectId) => {
-  const response = await apiClient.get(
-    ENDPOINTS.DETAIL,
-    {
+
+  getDetails: async (subjectId) => {
+    const response = await apiClient.get(ENDPOINTS.DETAIL, {
       params: { subjectId },
-    }
-  );
+    });
 
-  console.log(
-    "DETAIL RESPONSE",
-    response?.data
-  );
-
-  return (
-    response?.data?.data?.subject ||
-    null
-  );
-},
+    return response?.data?.data?.subject || null;
+  },
 
   getEpisodes: async (subjectId) => {
-  const response = await apiClient.get(
-    ENDPOINTS.EPISODES,
-    {
+    const response = await apiClient.get(ENDPOINTS.EPISODES, {
       params: { subjectId },
-    }
-  );
+    });
 
-  console.log(
-    "EPISODES RAW RESPONSE",
-    response
-  );
+    return response?.data;
+  },
 
-  console.log(
-    "EPISODES RAW DATA",
-    response?.data
-  );
-
-  return response?.data;
-},
-
-  /**
-   * Get captions/subtitles for a stream
-   * @param {string} streamId - Stream ID
-   * @param {string} format - Format type (e.g., 'MP4', 'WebM')
-   * @returns {Promise<Object>} Caption data with format, language, URL
-   * @throws {Error} If request fails
-   */
   getCaptions: async (streamId, subjectId, detailPath) => {
     const response = await fetch(
       `http://localhost:4000/captions?id=${streamId}&subjectId=${subjectId}&detailPath=${detailPath}`,
@@ -135,13 +173,6 @@ const movieService = {
     return data?.captions || [];
   },
 
-  /**
-   * Get recommendations for a subject
-   * @param {string} subjectId - Subject/Title ID
-   * @param {number} page - Page number (default: 1)
-   * @returns {Promise<Object>} Recommendation list
-   * @throws {Error} If request fails
-   */
   getRecommendations: async (subjectId) => {
     const response = await apiClient.get(ENDPOINTS.RECOMMENDATIONS, {
       params: {
@@ -154,11 +185,6 @@ const movieService = {
     return response?.data?.data?.items || [];
   },
 
-  /**
-   * Get bottom tab navigation menu
-   * @returns {Promise<Object>} Navigation tabs data
-   * @throws {Error} If request fails
-   */
   getBottomTabs: async () => {
     try {
       log("debug", `[movieService] getBottomTabs() called`);
@@ -176,11 +202,6 @@ const movieService = {
     }
   },
 
-  /**
-   * Get web application configuration
-   * @returns {Promise<Object>} Web config data
-   * @throws {Error} If request fails
-   */
   getWebConfig: async () => {
     try {
       log("debug", `[movieService] getWebConfig() called`);
@@ -196,47 +217,43 @@ const movieService = {
   },
 
   /**
-   * Get trending content using search endpoint
-   * @param {number} page - Page number (default: 1)
-   * @returns {Promise<Object>} Trending content list
-   * @throws {Error} If request fails
+   * Home feed (banner + operating sections)
+   * @param {Object} options
+   * @param {AbortSignal} options.signal
    */
-  getTrending: async (page = 1) => {
+  getHome: async ({ signal } = {}) => {
     try {
-      log("debug", `[movieService] getTrending() called, page: ${page}`);
-
-      const response = await apiClient.get(ENDPOINTS.SEARCH, {
-        params: {
-          keyword: "trending",
-          page,
-          perPage: 24,
-        },
+      const response = await apiClient.get(ENDPOINTS.HOME, {
+        params: { host: "movie-box.co" },
+        signal,
       });
 
-      log(
-        "debug",
-        `[movieService] getTrending() success: ${response.data?.list?.length || 0} items`,
-      );
-      return response?.data?.data?.everyoneSearch || [];
+      return response?.data?.data ?? null;
     } catch (error) {
-      log("error", `[movieService] getTrending() failed`, error.message);
+      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+        log("error", "[movieService] getHome() failed", error.message);
+      }
       throw error;
     }
   },
 
   /**
-   * Get popular content
-   * @param {number} page - Page number (default: 1)
-   * @returns {Promise<Object>} Popular content list
-   * @throws {Error} If request fails
+   * Hero carousel items from operatingList BANNER section only
    */
-  /**
-   * Get ranking list content (MovieBox / AoneRoom)
-   * @param {string} rankingId - Genre top / ranking id
-   * @param {number} page - Page number (default: 1)
-   * @param {number} perPage - Items per page (default: 12)
-   * @returns {Promise<Object>} Ranking payload (title, subjectList, pager)
-   */
+  getHomeBannerItems: async ({ signal } = {}) => {
+    const data = await movieService.getHome({ signal });
+    const operatingList = data?.operatingList ?? [];
+    const bannerSection = operatingList.find((item) => item.type === "BANNER");
+    const items = bannerSection?.banner?.items ?? [];
+
+    return items.filter((item) => {
+      const subjectId = String(item?.subjectId ?? "");
+      if (!subjectId || subjectId === "0") return false;
+      if (!item?.subject) return false;
+      return true;
+    });
+  },
+
   getRankingContent: async (rankingId, page = 1, perPage = 12) => {
     try {
       log(
@@ -255,29 +272,6 @@ const movieService = {
         `[movieService] getRankingContent() failed for id: ${rankingId}`,
         error.message,
       );
-      throw error;
-    }
-  },
-
-  getPopular: async (page = 1) => {
-    try {
-      log("debug", `[movieService] getPopular() called, page: ${page}`);
-
-      const response = await apiClient.get(ENDPOINTS.SEARCH, {
-        params: {
-          keyword: "popular",
-          page,
-          perPage: 24,
-        },
-      });
-
-      log(
-        "debug",
-        `[movieService] getPopular() success: ${response.data?.list?.length || 0} items`,
-      );
-      return response?.data?.data?.everyoneSearch || [];
-    } catch (error) {
-      log("error", `[movieService] getPopular() failed`, error.message);
       throw error;
     }
   },
