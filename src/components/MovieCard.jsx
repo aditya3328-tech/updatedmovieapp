@@ -1,27 +1,78 @@
-import { Link } from "react-router-dom";
+import { memo, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function MovieCard({ movie }) {
-  if (!movie) return null;
+const FALLBACK_POSTER =
+  "https://via.placeholder.com/300x450/0F1117/E50914?text=StreamWave";
+
+function MovieCard({ item, movie }) {
+  const navigate = useNavigate();
+  const data = item || movie;
+
+  const posterUrl = useMemo(
+    () => data?.cover?.url || FALLBACK_POSTER,
+    [data?.cover?.url],
+  );
+
+  const handleClick = useCallback(() => {
+    if (data?.subjectId) {
+      navigate(`/watch/${data.subjectId}`);
+    }
+  }, [data?.subjectId, navigate]);
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleClick();
+      }
+    },
+    [handleClick],
+  );
+
+  if (!data) return null;
 
   return (
-    <Link to={movie?.subjectId ? `/details/${movie.subjectId}` : "#"}>
-      <div className="group w-full max-w-[260px] rounded-3xl overflow-hidden border border-white/10 bg-[#111827] shadow-[0_18px_35px_-18px_rgba(0,0,0,0.75)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_25px_45px_-20px_rgba(229,9,20,0.5)]">
-        <div className="relative overflow-hidden">
-          <img
-            src={movie?.cover?.url || "https://via.placeholder.com/300x450?text=No+Image"}
-            alt={movie?.title || "Movie"}
-            className="w-full h-[280px] object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <div className="absolute inset-x-0 bottom-0 p-4 movie-card-overlay">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#e2e8f0]/75">
-              ⭐ {movie?.imdbRatingValue || "N/A"}
-            </p>
-            <h3 className="mt-2 text-base font-semibold text-white leading-5">
-              {movie?.title || "Unknown Title"}
-            </h3>
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className="movie-card group flex-shrink-0 w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#E50914] focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-xl"
+    >
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-[#0F1117] border border-white/10">
+        <img
+          src={posterUrl}
+          alt={data.title || "Title"}
+          loading="lazy"
+          decoding="async"
+          className="movie-card-image absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = FALLBACK_POSTER;
+          }}
+        />
+
+        <div className="movie-card-overlay">
+          {data.imdbRatingValue && (
+            <div className="movie-card-badge">
+              <span>⭐</span>
+              <span>{data.imdbRatingValue}</span>
+            </div>
+          )}
+
+          <h3 className="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">
+            {data.title}
+          </h3>
+
+          <div className="mt-2 space-y-0.5 text-xs text-zinc-300">
+            {data.countryName && (
+              <p className="line-clamp-1">{data.countryName}</p>
+            )}
+            {data.genre && <p className="line-clamp-1">{data.genre}</p>}
           </div>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
+
+export default memo(MovieCard);

@@ -1,60 +1,55 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import MoviePosterCard from './MoviePosterCard';
+import { memo, useMemo } from "react";
+import { motion } from "framer-motion";
+import MovieCard from "./MovieCard";
 
-export default function MovieRow({ title, movies, isLoading, viewAllLink }) {
-  if (!movies || movies.length === 0) return null;
+const SKELETON_COUNT = 6;
+
+function RowSkeleton() {
+  return (
+    <div className="mb-10">
+      <div className="h-7 w-48 mb-4 rounded-md bg-gradient-to-r from-zinc-800/80 via-zinc-700/60 to-zinc-800/80 animate-pulse skeleton" />
+      <div className="flex gap-4 overflow-hidden">
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 w-[calc((100%-1rem)/2)] md:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)] aspect-[2/3] rounded-xl bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 animate-pulse skeleton"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MovieRow({ title, items, movies, isLoading }) {
+  const list = useMemo(() => items ?? movies ?? [], [items, movies]);
+
+  if (isLoading) {
+    return <RowSkeleton />;
+  }
+
+  if (!list.length) return null;
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
-      className="mb-8"
+      transition={{ duration: 0.45 }}
+      viewport={{ once: true, margin: "-40px" }}
+      className="mb-10"
     >
-      {/* Row Header with Title and View All */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl lg:text-3xl font-bold text-white">
-          {title}
-        </h2>
-        {viewAllLink && (
-          <Link to={viewAllLink}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-4 py-2 text-sm font-semibold text-red-600 hover:text-red-500 transition-all"
-            >
-              View All →
-            </motion.button>
-          </Link>
-        )}
-      </div>
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4 px-4 sm:px-6 lg:px-8">
+        {title}
+      </h2>
 
-      {/* Movies Container */}
-      <div className="overflow-x-auto scroll-row pb-2">
-        <div className="flex gap-4 min-w-max">
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-40 h-60 bg-gray-700/30 rounded-lg animate-pulse skeleton"
-                />
-              ))
-            : movies.map((movie, index) => (
-                <motion.div
-                  key={movie.subjectId || index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  viewport={{ once: true }}
-                  className="flex-shrink-0"
-                >
-                  <MoviePosterCard movie={movie} />
-                </motion.div>
-              ))}
+      <div className="overflow-x-auto scroll-row pb-2 px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-4 min-w-full">
+          {list.map((item) => (
+            <MovieCard key={item.subjectId} item={item} />
+          ))}
         </div>
       </div>
     </motion.section>
   );
 }
+
+export default memo(MovieRow);

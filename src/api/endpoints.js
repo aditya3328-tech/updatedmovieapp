@@ -40,6 +40,9 @@ const ENDPOINTS = {
   CLIENT_INFO: "/client-info",
 
   MOVIE: "/subject/movie",
+
+  /** Ranking list content by genreTop / ranking id */
+  RANKING_CONTENT: "/ranking-list/content",
 };
 
 // Validate all endpoints are properly formatted

@@ -230,6 +230,35 @@ const movieService = {
    * @returns {Promise<Object>} Popular content list
    * @throws {Error} If request fails
    */
+  /**
+   * Get ranking list content (MovieBox / AoneRoom)
+   * @param {string} rankingId - Genre top / ranking id
+   * @param {number} page - Page number (default: 1)
+   * @param {number} perPage - Items per page (default: 12)
+   * @returns {Promise<Object>} Ranking payload (title, subjectList, pager)
+   */
+  getRankingContent: async (rankingId, page = 1, perPage = 12) => {
+    try {
+      log(
+        "debug",
+        `[movieService] getRankingContent() id=${rankingId}, page=${page}, perPage=${perPage}`,
+      );
+
+      const response = await apiClient.get(ENDPOINTS.RANKING_CONTENT, {
+        params: { id: rankingId, page, perPage },
+      });
+
+      return response?.data?.data;
+    } catch (error) {
+      log(
+        "error",
+        `[movieService] getRankingContent() failed for id: ${rankingId}`,
+        error.message,
+      );
+      throw error;
+    }
+  },
+
   getPopular: async (page = 1) => {
     try {
       log("debug", `[movieService] getPopular() called, page: ${page}`);
