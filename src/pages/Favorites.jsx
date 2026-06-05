@@ -6,7 +6,7 @@ export default function Favorites() {
   const { favorites } = usePlayerContext();
 
   return (
-    <div className="min-h-screen pt-20 md:pt-24 pb-24 md:pb-8 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto" id="favorites-page">
+    <div className="min-h-screen pt-[90px] md:pt-[80px] pb-24 md:pb-8 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto" id="favorites-page">
       {/* Header */}
       <div className="mb-8 animate-fade-in-up">
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Your Favorites</h1>

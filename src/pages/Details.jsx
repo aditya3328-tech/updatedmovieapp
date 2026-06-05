@@ -128,7 +128,7 @@ export default function Details() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 md:pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="min-h-screen pt-[90px] md:pt-[80px] pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <SkeletonDetail />
       </div>
     );
@@ -139,7 +139,7 @@ export default function Details() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen pt-20 md:pt-24 pb-24 flex items-center justify-center px-4"
+        className="min-h-screen pt-[90px] md:pt-[80px] pb-24 flex items-center justify-center px-4"
       >
         <div className="text-center glass rounded-lg p-12">
           <p className="text-6xl mb-4">😞</p>

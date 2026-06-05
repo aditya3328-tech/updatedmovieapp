@@ -66,6 +66,14 @@ const movieService = {
         { signal },
       );
 
+      console.log("SEARCH RESPONSE", response.data);
+      console.log("SEARCH ITEMS", response.data?.data?.items);
+
+      // Check for success status code (code === 0 means SUCCESS)
+      if (response.data.code !== 0) {
+        throw new Error(`Search API returned error code: ${response.data.code}, message: ${response.data.message}`);
+      }
+
       const items = response?.data?.data?.items || [];
 
       log(

@@ -8,7 +8,7 @@ import {
 
 const HERO_OVERLAY_STYLE = {
   background:
-    "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 80%, rgba(0,0,0,0.95) 100%)",
+    "linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.55) 35%, rgba(0,0,0,.15) 70%, rgba(0,0,0,.45) 100%), linear-gradient(to top, rgba(0,0,0,.95), transparent)",
 };
 
 export default function HeroSlide({
@@ -44,7 +44,7 @@ export default function HeroSlide({
 
       <div className="absolute inset-0" style={HERO_OVERLAY_STYLE} />
 
-      <div className="hero-content relative">
+      <div className="hero-content absolute top-1/2 left-16 z-20 -translate-y-1/2">
         <motion.div
           initial={isActive ? { opacity: 0, y: 30 } : false}
           animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}

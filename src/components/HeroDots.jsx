@@ -3,7 +3,7 @@ export default function HeroDots({ count, current, onSelect }) {
 
   return (
     <div
-      className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2"
+      className="absolute bottom-10 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2"
       role="tablist"
       aria-label="Hero carousel pagination"
     >

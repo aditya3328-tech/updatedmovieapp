@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import SuggestionsDropdown from './SuggestionsDropdown';
+import useSearchSuggestions from '../hooks/useSearchSuggestions';
 
 const SearchIconSVG = () => (
   <svg
@@ -40,8 +42,15 @@ export default function SearchBar({
   variant = 'default',
 }) {
   const [isFocused, setIsFocused] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef(null);
   const isNavbar = variant === 'navbar';
+
+  // Suggestions hook - enabled when focused and text is being typed
+  const { suggestions, loading } = useSearchSuggestions(
+    isFocused && value.trim().length > 0 ? value : '',
+    true,
+  );
 
   useEffect(() => {
     if (autoFocus) {
@@ -53,45 +62,76 @@ export default function SearchBar({
     e.preventDefault();
     if (!value.trim()) return;
     onSubmit?.(value.trim());
+    setShowSuggestions(false);
   };
 
   const handleClear = () => {
     onChange?.('');
     inputRef.current?.focus();
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionSelect = (suggestion) => {
+    onChange?.(suggestion);
+    setShowSuggestions(false);
+    // Trigger search after a short delay
+    setTimeout(() => {
+      onSubmit?.(suggestion);
+    }, 0);
+  };
+
+  const handleInputFocus = () => {
+    setIsFocused(true);
+    setShowSuggestions(value.trim().length > 0);
+    onFocus?.();
+  };
+
+  const handleInputBlur = () => {
+    setIsFocused(false);
+    // Delay hiding suggestions to allow click handling
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 150);
+    onBlur?.();
+  };
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    onChange?.(newValue);
+    setShowSuggestions(newValue.trim().length > 0);
   };
 
   if (isNavbar) {
     return (
       <form
         onSubmit={handleSubmit}
-        className={`navbar-search-form ${className}`}
+        className={`relative ${className}`}
         id="navbar-search-bar"
       >
         <div
-          className={`navbar-search-inner flex items-center ${
-            isFocused ? 'navbar-search-inner--focused' : ''
-          }`}
+          className="flex items-center rounded-full border transition-all"
+          style={{
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
         >
-          <span className="navbar-search-icon pl-4 text-gray-400 flex-shrink-0" aria-hidden>
+          <span
+            className="pl-4 text-gray-400 flex-shrink-0"
+            aria-hidden
+          >
             <SearchIconSVG />
           </span>
           <input
             ref={inputRef}
             type="search"
             value={value}
-            onChange={(e) => onChange?.(e.target.value)}
-            onFocus={() => {
-              setIsFocused(true);
-              onFocus?.();
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-              onBlur?.();
-            }}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             placeholder={placeholder}
             autoComplete="off"
             aria-label="Search"
-            className="navbar-search-input flex-1 bg-transparent px-4 text-white text-sm placeholder:text-gray-500 outline-none"
+            className="flex-1 bg-transparent px-4 py-3 text-white text-sm placeholder:text-gray-500 outline-none"
           />
           {value && (
             <button
@@ -104,6 +144,13 @@ export default function SearchBar({
             </button>
           )}
         </div>
+
+        <SuggestionsDropdown
+          visible={showSuggestions && isFocused}
+          suggestions={suggestions}
+          loading={loading}
+          onSelect={handleSuggestionSelect}
+        />
       </form>
     );
   }
@@ -142,15 +189,9 @@ export default function SearchBar({
           ref={inputRef}
           type="search"
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          onFocus={() => {
-            setIsFocused(true);
-            onFocus?.();
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-            onBlur?.();
-          }}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           placeholder={placeholder}
           autoComplete="off"
           aria-autocomplete="list"
@@ -169,6 +210,13 @@ export default function SearchBar({
           </button>
         )}
       </div>
+
+      <SuggestionsDropdown
+        visible={showSuggestions && isFocused}
+        suggestions={suggestions}
+        loading={loading}
+        onSelect={handleSuggestionSelect}
+      />
     </form>
   );
 }

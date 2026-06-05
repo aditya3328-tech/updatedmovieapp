@@ -93,7 +93,7 @@ export default function Search() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen pt-[120px] md:pt-[100px] pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-[#05070d]"
+      className="min-h-screen pt-[90px] md:pt-[80px] pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-[#05070d]"
       id="search-page"
     >
       {showEmptyState && (

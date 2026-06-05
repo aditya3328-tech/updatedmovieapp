@@ -160,7 +160,7 @@ export default function ApiDebugger() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <div className="min-h-screen pt-[90px] md:pt-[80px] pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-white mb-6">API Debugger</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-8">
