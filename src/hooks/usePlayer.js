@@ -1,16 +1,26 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import movieService from "../services/movieService";
+import { generateEpisodes } from "../utils/titleMatch";
 
-export default function usePlayer(subjectId, detailPath, subjectType) {
-console.log("USEPLAYER FILE");
-console.log("subjectId =", subjectId);
-console.log("detailPath =", detailPath);
+/**
+ * usePlayer hook — manages playback state, season/episode navigation,
+ * and stream fetching.
+ *
+ * TV series detection uses seasonsList (from MovieBox resource.seasons),
+ * NOT subjectType. If seasonsList has entries, it's a series.
+ *
+ * @param {string} subjectId
+ * @param {string} detailPath
+ * @param {number} subjectType - MovieBox subjectType (1=movie, 2=series) — used as hint only
+ * @param {Array} seasonsList - MovieBox resource.seasons array (source of truth)
+ */
+export default function usePlayer(subjectId, detailPath, subjectType, seasonsList = []) {
   const [streams, setStreams] = useState([]);
   const [captions, setCaptions] = useState([]);
   const [selectedStream, setSelectedStream] = useState(null);
   const [selectedCaption, setSelectedCaption] = useState(null);
 
-  const [season, setSeason] = useState(1);
+  const [season, setSeasonState] = useState(1);
   const [episode, setEpisode] = useState(1);
 
   const [loading, setLoading] = useState(true);
@@ -20,69 +30,119 @@ console.log("detailPath =", detailPath);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-const fetchCaptions = useCallback(async (streamId) => {
-  if (!subjectId || !detailPath) return;
+  // TV series detection: Use subjectType as the source of truth
+  // subjectType === 2 means TV series; 1 means movie
+  // seasonsList is optional enrichment (may be undefined/empty from API)
+  const isSeries = useMemo(
+    () => subjectType === 2,
+    [subjectType]
+  );
 
-  try {
-    const captionList =
-      await movieService.getCaptions(
-        streamId,
-        subjectId,
-        detailPath
-      );
+  // DEBUG: Log series detection
+  console.log("[usePlayer] Series Detection:");
+  console.log("  subjectType:", subjectType);
+  console.log("  isSeries:", isSeries);
 
-    console.log("CAPTIONS:", captionList);
+  // Derive episode list for the active season
+  // Works with or without seasonsList enrichment
+  const episodes = useMemo(() => {
+    if (!isSeries) return [];
+    if (!Array.isArray(seasonsList) || seasonsList.length === 0) return [];
+    const currentSeasonObj =
+      seasonsList.find((s) => s.se === season) || seasonsList[0];
+    if (!currentSeasonObj) return [];
+    return generateEpisodes(currentSeasonObj);
+  }, [seasonsList, season, isSeries]);
 
-    setCaptions(captionList);
+  // Sync state when seasons list first loads (optional enrichment)
+  // This only applies if seasonsList has data; TV series work without it
+  useEffect(() => {
+    if (!isSeries || !Array.isArray(seasonsList) || seasonsList.length === 0) {
+      return;
+    }
 
-    const englishCaption =
-      captionList.find(
-        (c) => c.lan === "en"
-      );
+    const validSeason = seasonsList.find((s) => s.se === season);
+    if (!validSeason) {
+      const firstSeason = seasonsList[0];
+      if (firstSeason && firstSeason.se) {
+        setSeasonState(firstSeason.se);
+        const eps = generateEpisodes(firstSeason);
+        if (eps.length > 0) setEpisode(eps[0]);
+      }
+    } else {
+      const eps = generateEpisodes(validSeason);
+      if (eps.length > 0 && !eps.includes(episode)) {
+        setEpisode(eps[0]);
+      }
+    }
+  }, [seasonsList]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    setSelectedCaption(
-      englishCaption || captionList[0] || null
-    );
-  } catch (err) {
-    console.error(err);
-    setCaptions([]);
-  }
-}, [subjectId, detailPath]);
+  // Custom season setter — auto-selects first episode of new season
+  // Works with or without seasonsList enrichment
+  const setSeason = useCallback(
+    (nextSeasonNum) => {
+      setSeasonState(nextSeasonNum);
+      if (isSeries && Array.isArray(seasonsList) && seasonsList.length > 0) {
+        const target = seasonsList.find((s) => s.se === nextSeasonNum);
+        if (target) {
+          const eps = generateEpisodes(target);
+          if (eps.length > 0) setEpisode(eps[0]);
+        }
+      }
+    },
+    [seasonsList, isSeries]
+  );
 
+  // ---- Captions ----
+  const fetchCaptions = useCallback(
+    async (streamId) => {
+      if (!subjectId || !detailPath) return;
+      try {
+        const captionList = await movieService.getCaptions(
+          streamId,
+          subjectId,
+          detailPath
+        );
+        setCaptions(captionList);
+        const englishCaption = captionList.find((c) => c.lan === "en");
+        setSelectedCaption(englishCaption || captionList[0] || null);
+      } catch (err) {
+        console.error("[usePlayer] Captions error:", err);
+        setCaptions([]);
+      }
+    },
+    [subjectId, detailPath]
+  );
+
+  // ---- Streams ----
   const fetchStreams = useCallback(async () => {
     if (!subjectId || !detailPath) {
-      console.log("Waiting for detailPath...");
       setStatus("Waiting for playback details...");
       return;
     }
 
     try {
-      console.log("FETCH STREAMS CALLED");
-      console.log("SUBJECT ID:", subjectId);
-      console.log("DETAIL PATH:", detailPath);
-
       setLoading(true);
       setError(null);
       setSelectedStream(null);
 
-      const isMovie = subjectType === 1;
-      const se = isMovie ? 0 : season;
-      const ep = isMovie ? 0 : episode;
+      // If subjectType === 2 (TV series), use selected season/episode
+      // Otherwise, send se=0 & ep=0 for movies
+      const se = isSeries ? season : 0;
+      const ep = isSeries ? episode : 0;
 
-      const response = await movieService.getStreams(
+      console.log("[usePlayer] Fetching streams:", {
+        isSeries,
+        season,
+        episode,
+        se,
+        ep,
         subjectId,
         detailPath,
-        se,
-        ep
-      );
+      });
 
-      console.log("GET STREAM RESPONSE:", response);
-
-      const streamList = Array.isArray(response?.streams)
-        ? response.streams
-        : [];
-
-      console.log("STREAM LIST:", streamList);
+      const response = await movieService.getStreams(subjectId, detailPath, se, ep);
+      const streamList = Array.isArray(response?.streams) ? response.streams : [];
 
       setStreams(streamList);
 
@@ -92,73 +152,111 @@ const fetchCaptions = useCallback(async (streamId) => {
             Number(b.resolutions ?? b.resolution ?? 0) -
             Number(a.resolutions ?? a.resolution ?? 0)
         );
-
         const bestStream = sortedStreams[0];
-
-        console.log("SELECTED STREAM:", bestStream);
-        console.log("VIDEO URL:", bestStream?.url);
-
         setSelectedStream(bestStream);
-
-        setStatus(
-          `Stream Ready (${bestStream?.resolutions || "Auto"}p)`
-        );
+        setStatus(`Stream Ready (${bestStream?.resolutions || "Auto"}p)`);
 
         if (bestStream?.id) {
           fetchCaptions(bestStream.id);
         }
       } else {
-        console.log("NO STREAMS FOUND");
         setSelectedStream(null);
         setStatus("No Streams Found");
       }
     } catch (err) {
       console.error("[usePlayer] Stream Error:", err);
-
       setSelectedStream(null);
       setStreams([]);
-
       setError("Failed to load video");
       setStatus("Playback Failed");
     } finally {
       setLoading(false);
     }
-  }, [
-    subjectId,
-    detailPath,
-    subjectType,
-    season,
-    episode,
-    fetchCaptions,
-  ]);
+  }, [subjectId, detailPath, isSeries, season, episode, fetchCaptions]);
 
   useEffect(() => {
-console.log("USEPLAYER FILE");
-console.log("subjectId =", subjectId);
-console.log("detailPath =", detailPath);
-
     fetchStreams();
   }, [fetchStreams]);
 
+  // ---- Quality change ----
   const changeQuality = useCallback(
     (stream) => {
       setSelectedStream(stream);
-
-      if (stream?.id) {
-        fetchCaptions(stream.id);
-      }
+      if (stream?.id) fetchCaptions(stream.id);
     },
     [fetchCaptions]
   );
 
+  // ---- Episode navigation ----
+  // Navigation is only available if seasonsList has data
   const nextEpisode = useCallback(() => {
-    setEpisode((prev) => prev + 1);
-  }, []);
+    if (!isSeries || !Array.isArray(seasonsList) || seasonsList.length === 0) {
+      return;
+    }
+    const currentSeasonObj =
+      seasonsList.find((s) => s.se === season) || seasonsList[0];
+    const eps = generateEpisodes(currentSeasonObj);
+    const index = eps.indexOf(episode);
+
+    if (index !== -1 && index < eps.length - 1) {
+      // Next episode in same season
+      setEpisode(eps[index + 1]);
+    } else {
+      // Transition to next season
+      const seasonIndex = seasonsList.findIndex((s) => s.se === season);
+      if (seasonIndex !== -1 && seasonIndex < seasonsList.length - 1) {
+        const nextSeasonObj = seasonsList[seasonIndex + 1];
+        setSeasonState(nextSeasonObj.se);
+        const nextEps = generateEpisodes(nextSeasonObj);
+        if (nextEps.length > 0) setEpisode(nextEps[0]);
+      }
+    }
+  }, [seasonsList, season, episode, isSeries]);
 
   const prevEpisode = useCallback(() => {
-    setEpisode((prev) => Math.max(1, prev - 1));
-  }, []);
+    if (!isSeries || !Array.isArray(seasonsList) || seasonsList.length === 0) {
+      return;
+    }
+    const currentSeasonObj =
+      seasonsList.find((s) => s.se === season) || seasonsList[0];
+    const eps = generateEpisodes(currentSeasonObj);
+    const index = eps.indexOf(episode);
 
+    if (index > 0) {
+      // Previous episode in same season
+      setEpisode(eps[index - 1]);
+    } else {
+      // Transition to previous season
+      const seasonIndex = seasonsList.findIndex((s) => s.se === season);
+      if (seasonIndex > 0) {
+        const prevSeasonObj = seasonsList[seasonIndex - 1];
+        setSeasonState(prevSeasonObj.se);
+        const prevEps = generateEpisodes(prevSeasonObj);
+        if (prevEps.length > 0) setEpisode(prevEps[prevEps.length - 1]);
+      }
+    }
+  }, [seasonsList, season, episode, isSeries]);
+
+  // ---- Navigation flags ----
+  const hasNextEpisode = useMemo(() => {
+    if (!isSeries) return false;
+    const seasonIndex = seasonsList.findIndex((s) => s.se === season);
+    if (seasonIndex === -1) return false;
+    const idx = episodes.indexOf(episode);
+    if (idx !== -1 && idx < episodes.length - 1) return true;
+    return seasonIndex < seasonsList.length - 1;
+  }, [seasonsList, season, episodes, episode, isSeries]);
+
+  const hasPrevEpisode = useMemo(() => {
+    if (!isSeries) return false;
+    const seasonIndex = seasonsList.findIndex((s) => s.se === season);
+    if (seasonIndex === -1) return false;
+    const idx = episodes.indexOf(episode);
+    if (idx > 0) return true;
+    return seasonIndex > 0;
+  }, [seasonsList, season, episodes, episode, isSeries]);
+
+  // ---- Misc ----
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen?.();
@@ -175,56 +273,45 @@ console.log("detailPath =", detailPath);
         const history = JSON.parse(
           localStorage.getItem("sw_watch_history") || "{}"
         );
-
         history[subjectId] = {
-          season,
-          episode,
+          season: isSeries ? season : 0,
+          episode: isSeries ? episode : 0,
           progress,
           timestamp: Date.now(),
         };
-
-        localStorage.setItem(
-          "sw_watch_history",
-          JSON.stringify(history)
-        );
+        localStorage.setItem("sw_watch_history", JSON.stringify(history));
       } catch (err) {
         console.error(err);
       }
     },
-    [subjectId, season, episode]
+    [subjectId, season, episode, isSeries]
   );
-console.log("CURRENT STREAMS STATE", streams);
-console.log("CURRENT SELECTED STREAM", selectedStream);
+
   return {
     streams,
     captions,
     selectedStream,
     selectedCaption,
-
     setSelectedCaption,
-
     season,
     setSeason,
-
     episode,
     setEpisode,
-
+    episodes,
+    isSeries,
     loading,
     error,
     status,
-
     playbackSpeed,
     setPlaybackSpeed,
-
     isFullscreen,
-
     changeQuality,
     nextEpisode,
     prevEpisode,
+    hasNextEpisode,
+    hasPrevEpisode,
     toggleFullscreen,
-
     updateWatchHistory,
-
     refetch: fetchStreams,
   };
 }

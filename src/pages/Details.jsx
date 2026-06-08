@@ -7,6 +7,7 @@ import Loader, { SkeletonDetail } from '../components/Loader';
 import MovieRow from '../components/MovieRow';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
+import useTmdbMetadata from '../hooks/useTmdbMetadata';
 
 /* SVG Icons */
 const PlayIcon = () => (
@@ -50,6 +51,12 @@ export default function Details() {
 
   const favorited = isFavorite(id);
 
+  const {
+    cast: tmdbCast,
+    loadingCast,
+    matched,
+  } = useTmdbMetadata(details);
+
   /* Fetch details */
   useEffect(() => {
     const fetchDetails = async () => {
@@ -64,7 +71,7 @@ export default function Details() {
           detailPath: data?.detailPath,
           subjectType: data?.subjectType
         });
-       setDetails(data);
+        setDetails(data);
       } catch (err) {
         setError('Failed to load details.');
         console.error('[Details] Error:', err);
@@ -123,7 +130,7 @@ export default function Details() {
         await navigator.clipboard.writeText(window.location.href);
         alert('Link copied!');
       }
-    } catch {}
+    } catch { }
   };
 
   if (loading) {
@@ -153,22 +160,22 @@ export default function Details() {
     );
   }
 
-const title = details?.title;
+  const title = details?.title;
 
-const poster =
-  details?.cover?.url;
+  const poster =
+    details?.cover?.url;
 
-const rating =
-  details?.imdbRatingValue;
+  const rating =
+    details?.imdbRatingValue;
 
-const description =
-  details?.description;
+  const description =
+    details?.description;
 
-const genres =
-  details?.genre?.split(",") || [];
+  const genres =
+    details?.genre?.split(",") || [];
 
-const releaseDate =
-  details?.releaseDate;
+  const releaseDate =
+    details?.releaseDate;
 
   return (
     <motion.div
@@ -180,16 +187,16 @@ const releaseDate =
     >
       {/* Backdrop with Overlay */}
       <div className="relative h-80 sm:h-96 lg:h-[420px] overflow-hidden -mb-24 sm:-mb-32 lg:-mb-40">
-       {poster && (
-  <motion.img
-    src={
-      details?.stills?.url ||
-      poster
-    }
-    alt={title}
-    className="w-full h-full object-cover"
-  />
-)}
+        {poster && (
+          <motion.img
+            src={
+              details?.stills?.url ||
+              poster
+            }
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
@@ -220,12 +227,12 @@ const releaseDate =
               className="w-40 sm:w-48 aspect-[2/3] rounded-lg overflow-hidden glass shadow-2xl border border-white/10"
             >
               {poster ? (
-  <img
-    src={poster}
-    alt={title}
-    className="w-full h-full object-cover"
-  />
-) : (
+                <img
+                  src={poster}
+                  alt={title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-700/40 to-gray-800/40 flex items-center justify-center text-4xl">
                   🎬
                 </div>
@@ -323,11 +330,10 @@ const releaseDate =
                 whileTap={{ scale: 0.95 }}
                 onClick={handleFavorite}
                 id="detail-favorite-btn"
-                className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all text-sm ${
-                  favorited
+                className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all text-sm ${favorited
                     ? 'bg-red-600/20 border-red-600/50 text-red-400'
                     : 'glass border-white/10 text-white hover:bg-white/10'
-                }`}
+                  }`}
               >
                 <HeartIcon filled={favorited} />
                 {favorited ? 'Favorited' : 'Favorite'}
@@ -346,17 +352,20 @@ const releaseDate =
           </div>
         </motion.div>
 
-        {/* Cast Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="mb-12"
-          id="cast-section"
-        >
-          <CastSection cast={details?.cast || details?.actors || details?.actorList || []} />
-        </motion.section>
+        {/* Cast Section (TMDB enrichment only) */}
+        {matched && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mt-16 mb-12"
+            id="cast-section"
+          >
+            <CastSection cast={tmdbCast} loading={loadingCast} />
+          </motion.section>
+        )}
+
+
 
         {/* Similar Content */}
         <motion.section

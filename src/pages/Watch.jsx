@@ -6,6 +6,7 @@ import SubtitleSelector from '../components/SubtitleSelector';
 import usePlayer from '../hooks/usePlayer';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
+import useTmdbMetadata from '../hooks/useTmdbMetadata';
 import './Watch.css';
 
 const DEFAULT_SEASON_COUNT = 5;
@@ -48,6 +49,19 @@ export default function Watch() {
   const detailPath = details?.detailPath;
   const [episodesData, setEpisodesData] = useState(null);
 
+  // CRITICAL: Pass seasonsList from MovieBox resource to usePlayer (optional enrichment)
+  // seasonsList may be undefined/empty if API doesn't include resource data
+  // Series detection now uses subjectType === 2, not seasonsList
+  const seasonsList = details?.resource?.seasons || [];
+
+  // Load TMDB episode metadata (reusing same hook as Details page)
+  const {
+    seasonNumbers,
+    episodesBySeason,
+    loadSeason,
+    loadingCast: loadingTmdb,
+  } = useTmdbMetadata(details);
+
   const {
     streams,
     captions,
@@ -67,7 +81,7 @@ export default function Watch() {
     nextEpisode,
     prevEpisode,
     updateWatchHistory,
-  } = usePlayer(details?.subjectId, detailPath, details?.subjectType);
+  } = usePlayer(details?.subjectId, detailPath, details?.subjectType, seasonsList);
 
   const { addToContinueWatching } = usePlayerContext();
   const [recommendations, setRecommendations] = useState([]);
@@ -85,23 +99,14 @@ export default function Watch() {
         
         const data = await movieService.getDetails(subjectId);
         
-        console.log("[Watch] DETAIL PAGE MOVIE:", data);
-        console.log("[Watch] WATCH BUTTON PAYLOAD:", {
-          subjectId: data?.subjectId,
-          detailPath: data?.detailPath,
-          title: data?.title,
-          subjectType: data?.subjectType,
-          season: 1,
-          episode: 1
-        });
-        
         if (data) {
-          setDetails(data);
-          console.log("[Watch] WATCH PAGE RECEIVED:", {
+          console.log("[Watch] Details received:", {
             subjectId: data.subjectId,
             title: data.title,
-            detailPath: data.detailPath
+            subjectType: data.subjectType,
+            hasResource: !!data.resource,
           });
+          setDetails(data);
           
           addToContinueWatching({
             subjectId: data.subjectId,
@@ -121,9 +126,6 @@ export default function Watch() {
   const fetchEpisodes = async () => {
     try {
       const data = await movieService.getEpisodes(subjectId);
-
-      console.log("EPISODES DATA", data);
-
       setEpisodesData(data);
     } catch (err) {
       console.error("[Watch] Episodes error:", err);
@@ -170,7 +172,17 @@ export default function Watch() {
     return fromDetails || 1;
   }, [details]);
 
+  // Episode count should be per-season if available
+`  // TMDB episodes take priority, fallback to MovieBox data
   const episodeCount = useMemo(() => {
+    // If TMDB data exists for this season, use its episode count
+    const tmdbEpisodes = episodesBySeason[season];
+    if (Array.isArray(tmdbEpisodes) && tmdbEpisodes.length > 0) {
+      console.log('[Watch] Episode count (from TMDB):', tmdbEpisodes.length);
+      return tmdbEpisodes.length;
+    }
+
+    // Fallback to MovieBox data
     const fromDetails =
       details?.episodeCount ||
       details?.totalEpisodes ||
@@ -178,22 +190,77 @@ export default function Watch() {
         ? details.episodes.length
         : null);
   
-    return fromDetails || 1;
-  }, [details]);
-  const seasons = useMemo(
-    () => Array.from({ length: seasonCount }, (_, i) => i + 1),
-    [seasonCount]
-  );
+    const count = fromDetails || 1;
+    console.log('[Watch] Episode count (from MovieBox):', count);
+    return count;
+  }, [season, episodesBySeason, details]);
+  
+  // Use TMDB season numbers if available, otherwise generate from count
+  const seasons = useMemo(() => {
+    console.log('[Watch] TMDB Season Numbers:', seasonNumbers);
+    
+    if (Array.isArray(seasonNumbers) && seasonNumbers.length > 0) {
+      return seasonNumbers;
+    }
+    
+    // Fallback: generate from MovieBox season count
+    return Array.from({ length: seasonCount }, (_, i) => i + 1);
+  }, [seasonCount, seasonNumbers]);
 
-  const episodes = useMemo(
-    () => Array.from({ length: episodeCount }, (_, i) => i + 1),
-    [episodeCount]
-  );
+  // Merge TMDB episode metadata with episode count for display
+  // Falls back to numbered list if TMDB data unavailable
+  const episodes = useMemo(() => {
+    const tmdbEpisodes = episodesBySeason[season] || [];
+    const movieBoxCount = episodeCount;
+    
+    console.log('[Watch] Episode Resolution for Season', season, ':', {
+      tmdbEpisodesCount: tmdbEpisodes.length,
+      episodeCountFromDetails: movieBoxCount,
+      tmdbEpisodes: tmdbEpisodes.length > 0 ? tmdbEpisodes.length : 'empty',
+    });
+    
+    console.log('[Watch] TMDB Episodes:', tmdbEpisodes);
+    console.log('[Watch] Episodes By Season:', episodesBySeason);
+    console.log('[Watch] Season:', season, 'MovieBox Episode Count:', movieBoxCount);
+    
+    // If TMDB metadata exists for this season, use it
+    if (Array.isArray(tmdbEpisodes) && tmdbEpisodes.length > 0) {
+      console.log('[Watch] Using TMDB episodes for Season', season, 'count:', tmdbEpisodes.length);
+      const result = tmdbEpisodes.map((ep) => ({
+        number: ep.episodeNumber || ep.episode_number,
+        name: ep.name || `Episode ${ep.episodeNumber || ep.episode_number}`,
+        overview: ep.overview || '',
+        thumbnail: ep.thumbnail || ep.still_path,
+      }));
+      console.log('[Watch] Watch Page Episodes (from TMDB):', result.length, 'episodes');
+      return result;
+    }
+    
+    // Fallback: just numbered episodes
+    console.log('[Watch] Using fallback episodes (MovieBox count:', movieBoxCount, ')');
+    const fallbackEpisodes = Array.from({ length: movieBoxCount }, (_, i) => ({
+      number: i + 1,
+      name: `Episode ${i + 1}`,
+      overview: '',
+      thumbnail: null,
+    }));
+    console.log('[Watch] Watch Page Episodes (fallback):', fallbackEpisodes.length, 'episodes');
+    return fallbackEpisodes;
+  }, [episodeCount, season, episodesBySeason]);
 
   const handleSeasonChange = (e) => {
     const next = Number(e.target.value);
+    console.log('[Watch] Season changed to:', next);
     setSeason(next);
     setEpisode(1);
+    
+    // Log episode count for this season
+    console.log('[Watch] Episode count for season', next, ':', episodeCount);
+    
+    // Load TMDB episode metadata for this season
+    if (loadSeason) {
+      loadSeason(next);
+    }
   };
   
 
@@ -342,18 +409,45 @@ export default function Watch() {
           <section className="watch-episodes-section" aria-label="Episode selection">
             <p className="watch-section-label">Episodes</p>
             <div className="watch-episode-grid" id="watch-episode-grid">
-              {episodes.map((ep) => (
-                <button
-                  key={ep}
-                  type="button"
-                  className={`watch-episode-btn${ep === episode ? ' active' : ''}`}
-                  onClick={() => setEpisode(ep)}
-                  id={ep === episode ? 'watch-episode-active' : `watch-episode-${ep}`}
-                  aria-current={ep === episode ? 'true' : undefined}
-                >
-                  {String(ep).padStart(2, '0')}
-                </button>
-              ))}
+              {episodes.map((ep) => {
+                const epNumber = ep.number;
+                const isActive = epNumber === episode;
+                return (
+                  <button
+                    key={epNumber}
+                    type="button"
+                    className={`watch-episode-btn${isActive ? ' active' : ''}`}
+                    onClick={() => setEpisode(epNumber)}
+                    id={isActive ? 'watch-episode-active' : `watch-episode-${epNumber}`}
+                    aria-current={isActive ? 'true' : undefined}
+                    title={ep.name}
+                  >
+                    {/* Thumbnail Container */}
+                    <div className="watch-episode-thumbnail-container">
+                      {ep.thumbnail ? (
+                        <img
+                          src={ep.thumbnail}
+                          alt={ep.name}
+                          className="watch-episode-thumbnail-img"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="watch-episode-thumbnail-placeholder">
+                          E{String(epNumber).padStart(2, '0')}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Episode Info Overlay */}
+                    <div className="watch-episode-info">
+                      <div className="watch-episode-number">Episode {epNumber}</div>
+                      {ep.name && ep.name !== `Episode ${epNumber}` && (
+                        <div className="watch-episode-name">{ep.name}</div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
