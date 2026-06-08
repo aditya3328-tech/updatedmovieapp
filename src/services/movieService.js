@@ -155,13 +155,22 @@ const movieService = {
     };
   },
 
-  getDetails: async (subjectId) => {
-    const response = await apiClient.get(ENDPOINTS.DETAIL, {
-      params: { subjectId },
-    });
+ getDetails: async (subjectId) => {
+  const response = await apiClient.get(ENDPOINTS.DETAIL, {
+    params: { subjectId },
+  });
 
-    return response?.data?.data?.subject || null;
-  },
+  const data = response?.data?.data;
+
+  if (!data?.subject) return null;
+
+  return {
+    ...data.subject,
+    resource: data.resource,
+    metadata: data.metadata,
+    dubs: data.subject?.dubs || [],
+  };
+},
 
   getEpisodes: async (subjectId) => {
     const response = await apiClient.get(ENDPOINTS.EPISODES, {

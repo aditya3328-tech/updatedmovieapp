@@ -1,6 +1,20 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import movieService from "../services/movieService";
-import { generateEpisodes } from "../utils/titleMatch";
+
+function generateEpisodes(seasonObj) {
+  if (!seasonObj) return [];
+  if (seasonObj.allEp && String(seasonObj.allEp).trim()) {
+    return String(seasonObj.allEp)
+      .split(',')
+      .map((ep) => {
+        const num = Number(ep.trim());
+        return isNaN(num) ? ep.trim() : num;
+      })
+      .filter((ep) => ep !== '' && ep !== 0);
+  }
+  const max = Number(seasonObj.maxEp) || 0;
+  return Array.from({ length: max }, (_, i) => i + 1);
+}
 
 /**
  * usePlayer hook — manages playback state, season/episode navigation,
@@ -30,18 +44,19 @@ export default function usePlayer(subjectId, detailPath, subjectType, seasonsLis
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // TV series detection: Use subjectType as the source of truth
-  // subjectType === 2 means TV series; 1 means movie
-  // seasonsList is optional enrichment (may be undefined/empty from API)
+  // TV series detection: subjectType 2 (number or string) OR seasons from MovieBox
+  // MovieBox resource.seasons is the source of truth for TV series detection
   const isSeries = useMemo(
-    () => subjectType === 2,
-    [subjectType]
+    () => Number(subjectType) === 2 || (Array.isArray(seasonsList) && seasonsList.length > 0),
+    [subjectType, seasonsList]
   );
 
-  // DEBUG: Log series detection
-  console.log("[usePlayer] Series Detection:");
-  console.log("  subjectType:", subjectType);
-  console.log("  isSeries:", isSeries);
+  console.log("[usePlayer] Series Detection:", {
+    subjectType,
+    subjectTypeNumber: Number(subjectType),
+    seasonsCount: seasonsList?.length || 0,
+    isSeries,
+  });
 
   // Derive episode list for the active season
   // Works with or without seasonsList enrichment
@@ -126,19 +141,24 @@ export default function usePlayer(subjectId, detailPath, subjectType, seasonsLis
       setError(null);
       setSelectedStream(null);
 
-      // If subjectType === 2 (TV series), use selected season/episode
-      // Otherwise, send se=0 & ep=0 for movies
-      const se = isSeries ? season : 0;
-      const ep = isSeries ? episode : 0;
+      // For movies: se=0, ep=0. For TV series: minimum se=1, ep=1.
+      let se = isSeries ? season : 0;
+      let ep = isSeries ? episode : 0;
 
-      console.log("[usePlayer] Fetching streams:", {
+      // TV series must never send se=0 or ep=0
+      if (isSeries) {
+        se = Math.max(1, se);
+        ep = Math.max(1, ep);
+      }
+
+      console.log("[usePlayer] resolve-streams request:", {
+        subjectId,
+        detailPath,
         isSeries,
         season,
         episode,
         se,
         ep,
-        subjectId,
-        detailPath,
       });
 
       const response = await movieService.getStreams(subjectId, detailPath, se, ep);

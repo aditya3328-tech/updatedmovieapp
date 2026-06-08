@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import MoviePosterCard from '../components/MoviePosterCard';
-import CastSection from '../components/CastSection';
 import Loader, { SkeletonDetail } from '../components/Loader';
 import MovieRow from '../components/MovieRow';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
-import useTmdbMetadata from '../hooks/useTmdbMetadata';
 
 /* SVG Icons */
 const PlayIcon = () => (
@@ -50,12 +47,6 @@ export default function Details() {
   const [error, setError] = useState(null);
 
   const favorited = isFavorite(id);
-
-  const {
-    cast: tmdbCast,
-    loadingCast,
-    matched,
-  } = useTmdbMetadata(details);
 
   /* Fetch details */
   useEffect(() => {
@@ -351,21 +342,6 @@ export default function Details() {
             </motion.div>
           </div>
         </motion.div>
-
-        {/* Cast Section (TMDB enrichment only) */}
-        {matched && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mt-16 mb-12"
-            id="cast-section"
-          >
-            <CastSection cast={tmdbCast} loading={loadingCast} />
-          </motion.section>
-        )}
-
-
 
         {/* Similar Content */}
         <motion.section
