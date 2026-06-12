@@ -44,6 +44,10 @@ const ENDPOINTS = {
   CATEGORY: "/category",
 
   CLIENT_INFO: "/client-info",
+  
+  STAFF_RELATED: "/staff/staff-related",
+
+   STAFF_SUBJECTS: "/staff/subject-list",
 
   MOVIE: "/subject/movie",
 

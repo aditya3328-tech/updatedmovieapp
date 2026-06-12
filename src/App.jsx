@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import "plyr/dist/plyr.css";
+import StaffPage from "./pages/Staff";
 import Loader from './components/Loader';
 import { PlayerProvider } from './context/PlayerContext';
 
@@ -57,6 +58,7 @@ export default function App() {
                 <Route path="/watch/:subjectId" element={<Watch />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/debug/api" element={<ApiDebugger />} />
+                <Route path="/staff/:staffId" element={<StaffPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

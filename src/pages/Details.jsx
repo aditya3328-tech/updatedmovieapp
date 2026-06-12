@@ -5,6 +5,11 @@ import Loader, { SkeletonDetail } from '../components/Loader';
 import MovieRow from '../components/MovieRow';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
 
 /* SVG Icons */
 const PlayIcon = () => (
@@ -150,6 +155,8 @@ export default function Details() {
       </motion.div>
     );
   }
+  console.log(details);
+  console.log(details.stars);
 
   const title = details?.title;
 
@@ -167,7 +174,8 @@ export default function Details() {
 
   const releaseDate =
     details?.releaseDate;
-
+    
+console.log(details.dubs)
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -179,14 +187,19 @@ export default function Details() {
       {/* Backdrop with Overlay */}
       <div className="relative h-80 sm:h-96 lg:h-[420px] overflow-hidden -mb-24 sm:-mb-32 lg:-mb-40">
         {poster && (
-          <motion.img
-            src={
-              details?.stills?.url ||
-              poster
-            }
-            alt={title}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls={false}
             className="w-full h-full object-cover"
-          />
+          >
+            <source
+              src={details?.trailer?.videoAddress?.url}
+              type="video/mp4"
+            />
+          </video>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
@@ -295,6 +308,35 @@ export default function Details() {
             >
               {description}
             </motion.p>
+{details?.dubs?.length > 0 && (
+  <div className="mb-6">
+    <h3 className="text-white text-xl font-bold mb-3">
+      🌐 Available Languages
+      <span className="text-gray-400 ml-2 text-base">
+        ({details.dubs.length})
+      </span>
+    </h3>
+
+    <div className="flex flex-wrap gap-2">
+      {details.dubs.map((dub) => (
+        <span
+          key={dub.lanName}
+          className="
+            px-3 py-1
+            rounded-full
+            bg-red-500/10
+            border border-red-500/20
+            text-red-300
+            text-sm
+            font-medium
+          "
+        >
+          {dub.lanName}
+        </span>
+      ))}
+    </div>
+  </div>
+)}
 
             {/* Action Buttons */}
             <motion.div
@@ -322,8 +364,8 @@ export default function Details() {
                 onClick={handleFavorite}
                 id="detail-favorite-btn"
                 className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all text-sm ${favorited
-                    ? 'bg-red-600/20 border-red-600/50 text-red-400'
-                    : 'glass border-white/10 text-white hover:bg-white/10'
+                  ? 'bg-red-600/20 border-red-600/50 text-red-400'
+                  : 'glass border-white/10 text-white hover:bg-white/10'
                   }`}
               >
                 <HeartIcon filled={favorited} />
@@ -342,6 +384,68 @@ export default function Details() {
             </motion.div>
           </div>
         </motion.div>
+      {details?.stars?.length > 0 && (
+  <section className="mb-12">
+    <h2 className="text-3xl font-black text-white mb-6">
+      Cast
+    </h2>
+
+    <Swiper
+      modules={[Navigation]}
+      navigation
+      spaceBetween={16}
+      slidesPerView={2.2}
+      breakpoints={{
+        640: {
+          slidesPerView: 3.2,
+        },
+        768: {
+          slidesPerView: 4.2,
+        },
+        1024: {
+          slidesPerView: 5.2,
+        },
+        1280: {
+          slidesPerView: 6.2,
+        },
+      }}
+    >
+      {details.stars.map((actor) => (
+        <SwiperSlide key={actor.staffId}>
+          <Link
+            to={`/staff/${actor.staffId}`}
+            className="block group"
+          >
+            <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-white/10">
+              <img
+                src={
+                  actor.avatarUrl ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    actor.name
+                  )}`
+                }
+                alt={actor.name}
+                className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition duration-300"
+              />
+
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3">
+                <h4 className="text-white font-semibold text-sm line-clamp-1">
+                  {actor.name}
+                </h4>
+
+                {actor.character && (
+                  <p className="text-gray-300 text-xs line-clamp-1">
+                    {actor.character}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Link>
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  </section>
+)}
 
         {/* Similar Content */}
         <motion.section

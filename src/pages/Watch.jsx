@@ -42,7 +42,34 @@ export default function Watch() {
   const { subjectId } = useParams();
   const [details, setDetails] = useState(null);
   const [descExpanded, setDescExpanded] = useState(false);
+  const [selectedDub, setSelectedDub] = useState(null);
   const detailPath = details?.detailPath;
+  useEffect(() => {
+  if (
+    details?.dubs?.length &&
+    !selectedDub
+  ) {
+    const currentDub =
+      details.dubs.find(
+        d =>
+          String(d.subjectId) ===
+          String(subjectId)
+      ) || details.dubs[0];
+
+    setSelectedDub(currentDub);
+  }
+}, [details, subjectId]);
+
+ const handleLanguageChange = (e) => {
+  const dub = details?.dubs?.find(
+    d => d.subjectId === e.target.value
+  );
+
+  if (!dub) return;
+
+  window.location.href =
+    `/watch/${dub.subjectId}`;
+};
 
   const seasonsList = details?.resource?.seasons || [];
 
@@ -268,31 +295,60 @@ export default function Watch() {
             <p className="watch-language">Language: {language}</p>
           )}
 
-          {description && (
-            <>
-              <p className={`watch-description${descExpanded ? ' expanded' : ''}`}>
-                {description}
-              </p>
-              {description.length > 160 && (
-                <button
-                  type="button"
-                  className="watch-read-more"
-                  onClick={() => setDescExpanded((v) => !v)}
-                >
-                  {descExpanded ? 'Show less' : 'Read more'}
-                </button>
-              )}
-            </>
-          )}
+{description && (
+  <>
+    <p className={`watch-description${descExpanded ? ' expanded' : ''}`}>
+      {description}
+    </p>
 
-          <section aria-label="Season selection">
-            <p className="watch-section-label">Season</p>
-            <select
-              id="watch-season-select"
-              className="watch-season-select"
-              value={season}
-              onChange={handleSeasonChange}
-            >
+    {description.length > 160 && (
+      <button
+        type="button"
+        className="watch-read-more"
+        onClick={() => setDescExpanded((v) => !v)}
+      >
+        {descExpanded ? 'Show less' : 'Read more'}
+      </button>
+    )}
+  </>
+)}
+
+{/* AUDIO LANGUAGE */}
+
+{details?.dubs?.length > 0 && (
+  <section className="watch-language-section">
+    <p className="watch-section-label">
+      Audio Language
+    </p>
+
+    <select
+      value={selectedDub?.subjectId || details.subjectId}
+      onChange={handleLanguageChange}
+      className="watch-season-select"
+    >
+      {details.dubs.map((dub) => (
+        <option
+          key={dub.subjectId}
+          value={dub.subjectId}
+        >
+          {dub.lanName}
+        </option>
+      ))}
+    </select>
+  </section>
+)}
+
+<section aria-label="Season selection">
+  <p className="watch-section-label">
+    Season
+  </p>
+
+  <select
+    id="watch-season-select"
+    className="watch-season-select"
+    value={season}
+    onChange={handleSeasonChange}
+  >
               {seasons.map((s) => (
                 <option key={s} value={s}>
                   Season {s}

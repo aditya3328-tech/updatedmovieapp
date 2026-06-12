@@ -46,10 +46,10 @@ export default function usePlayer(subjectId, detailPath, subjectType, seasonsLis
 
   // TV series detection: subjectType 2 (number or string) OR seasons from MovieBox
   // MovieBox resource.seasons is the source of truth for TV series detection
-  const isSeries = useMemo(
-    () => Number(subjectType) === 2 || (Array.isArray(seasonsList) && seasonsList.length > 0),
-    [subjectType, seasonsList]
-  );
+ const isSeries = useMemo(
+  () => Number(subjectType) === 2,
+  [subjectType]
+);
 
   console.log("[usePlayer] Series Detection:", {
     subjectType,

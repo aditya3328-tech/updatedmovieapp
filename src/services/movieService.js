@@ -57,14 +57,15 @@ const movieService = {
       );
 
       const response = await apiClient.post(
-        ENDPOINTS.SEARCH,
-        {
-          keyword: query,
-          page,
-          perPage: 28,
-        },
-        { signal },
-      );
+  ENDPOINTS.SEARCH,
+  {
+    keyword: query,
+    page,
+    perPage: 28,
+    subjectType: 2,
+  },
+  { signal },
+);
 
       console.log("SEARCH RESPONSE", response.data);
       console.log("SEARCH ITEMS", response.data?.data?.items);
@@ -169,6 +170,7 @@ const movieService = {
     resource: data.resource,
     metadata: data.metadata,
     dubs: data.subject?.dubs || [],
+    stars: data.stars || [],
   };
 },
 
@@ -195,7 +197,7 @@ const movieService = {
       params: {
         subjectId,
         page: 1,
-        perPage: 24,
+        perPage: 18,
       },
     });
 
@@ -270,8 +272,36 @@ const movieService = {
       return true;
     });
   },
+getStaffRelated: async (staffId) => {
+  const response = await apiClient.get(
+    ENDPOINTS.STAFF_RELATED,
+    {
+      params: { staffId },
+    }
+  );
 
-  getRankingContent: async (rankingId, page = 1, perPage = 12) => {
+  return response?.data?.data?.items || [];
+},
+
+getStaffSubjects: async (
+  staffId,
+  page = 1,
+  perPage = 18
+) => {
+  const response = await apiClient.get(
+    ENDPOINTS.STAFF_SUBJECTS,
+    {
+      params: {
+        staffId,
+        page,
+        perPage,
+      },
+    }
+  );
+
+  return response?.data?.data?.items || [];
+},
+  getRankingContent: async (rankingId,page = 1,perPage = 18) => {
     try {
       log(
         "debug",
