@@ -21,6 +21,46 @@ const StarIcon = () => (
   </svg>
 );
 
+const CalendarIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+
+const GlobeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
+const FilmIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
+    <line x1="7" y1="2" x2="7" y2="22" />
+    <line x1="17" y1="2" x2="17" y2="22" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <line x1="2" y1="7" x2="7" y2="7" />
+    <line x1="2" y1="17" x2="7" y2="17" />
+    <line x1="17" y1="17" x2="22" y2="17" />
+    <line x1="17" y1="7" x2="22" y2="7" />
+  </svg>
+);
+
+const SubtitlesIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <line x1="7" y1="15" x2="9" y2="15" />
+    <line x1="13" y1="15" x2="17" y2="15" />
+    <line x1="7" y1="9" x2="17" y2="9" />
+    <line x1="7" y1="12" x2="11" y2="12" />
+  </svg>
+);
+
 function formatGenreList(genres) {
   if (!genres) return null;
   if (typeof genres === 'string') return genres;
@@ -208,10 +248,11 @@ export default function Watch() {
     '';
 
   const metaItems = [
-    rating ? { key: 'rating', node: <><StarIcon /> <span className="watch-meta-star">{rating}</span></> } : null,
-    year ? { key: 'year', node: <span className="watch-meta-pill">{year}</span> } : null,
-    genreText ? { key: 'genre', node: <span className="watch-meta-pill">{genreText}</span> } : null,
-    country ? { key: 'country', node: <span className="watch-meta-pill">{country}</span> } : null,
+    rating ? { key: 'rating', node: <span className="watch-meta-item"><StarIcon /> {rating}</span> } : null,
+    country ? { key: 'country', node: <span className="watch-meta-item"><GlobeIcon /> {country}</span> } : null,
+    genreText ? { key: 'genre', node: <span className="watch-meta-item"><FilmIcon /> {genreText}</span> } : null,
+    releaseDate ? { key: 'releaseDate', node: <span className="watch-meta-item"><CalendarIcon /> {releaseDate}</span> } : null,
+    captions?.length > 0 ? { key: 'subtitles', node: <span className="watch-meta-item"><SubtitlesIcon /> CC / Subtitles</span> } : null,
   ].filter(Boolean);
 
   const episodeLabel = isMovie ? title : `${title}`;
@@ -247,210 +288,258 @@ export default function Watch() {
       </Link>
 
       <div className="watch-page-inner">
-        <div className="watch-player-wrap">
-          {loading ? (
-            <div className="watch-player-skeleton skeleton" aria-hidden />
-          ) : (
-            <Player
-              streams={streams}
-              captions={captions}
-              selectedStream={selectedStream}
-              selectedCaption={selectedCaption}
-              onQualityChange={changeQuality}
-              onCaptionChange={setSelectedCaption}
-              playbackSpeed={playbackSpeed}
-              onSpeedChange={setPlaybackSpeed}
-              onNextEpisode={nextEpisode}
-              onPrevEpisode={episode > 1 ? prevEpisode : undefined}
-              onProgress={handleProgress}
-              title={episodeLabel}
-            />
-          )}
-        </div>
+        <div className="watch-layout-grid">
+          
+          {/* PLAYER CONTAINER */}
+          <div className="watch-player-wrap">
+            {loading ? (
+              <div className="watch-player-skeleton skeleton" aria-hidden />
+            ) : (
+              <Player
+                streams={streams}
+                captions={captions}
+                selectedStream={selectedStream}
+                selectedCaption={selectedCaption}
+                onQualityChange={changeQuality}
+                onCaptionChange={setSelectedCaption}
+                playbackSpeed={playbackSpeed}
+                onSpeedChange={setPlaybackSpeed}
+                onNextEpisode={nextEpisode}
+                onPrevEpisode={episode > 1 ? prevEpisode : undefined}
+                onProgress={handleProgress}
+                title={episodeLabel}
+              />
+            )}
 
-        {status && !loading && (
-          <p className="watch-status" aria-live="polite">
-            {status}
-          </p>
-        )}
-
-        <div className="watch-content">
-          <h1 className="watch-title">{episodeLabel}</h1>
-          {episodeSubtitle && (
-            <p className="watch-episode-subtitle">{episodeSubtitle}</p>
-          )}
-
-          {metaItems.length > 0 && (
-            <div className="watch-meta">
-              {metaItems.map((item, index) => (
-                <Fragment key={item.key}>
-                  {index > 0 && <span className="watch-meta-divider">|</span>}
-                  {item.node}
-                </Fragment>
-              ))}
-            </div>
-          )}
-
-          {language && (
-            <p className="watch-language">Language: {language}</p>
-          )}
-
-{description && (
-  <>
-    <p className={`watch-description${descExpanded ? ' expanded' : ''}`}>
-      {description}
-    </p>
-
-    {description.length > 160 && (
-      <button
-        type="button"
-        className="watch-read-more"
-        onClick={() => setDescExpanded((v) => !v)}
-      >
-        {descExpanded ? 'Show less' : 'Read more'}
-      </button>
-    )}
-  </>
-)}
-
-{/* AUDIO LANGUAGE */}
-
-{details?.dubs?.length > 0 && (
-  <section className="watch-language-section">
-    <p className="watch-section-label">
-      Audio Language
-    </p>
-
-    <select
-      value={selectedDub?.subjectId || details.subjectId}
-      onChange={handleLanguageChange}
-      className="watch-season-select"
-    >
-      {details.dubs.map((dub) => (
-        <option
-          key={dub.subjectId}
-          value={dub.subjectId}
-        >
-          {dub.lanName}
-        </option>
-      ))}
-    </select>
-  </section>
-)}
-
-<section aria-label="Season selection">
-  <p className="watch-section-label">
-    Season
-  </p>
-
-  <select
-    id="watch-season-select"
-    className="watch-season-select"
-    value={season}
-    onChange={handleSeasonChange}
-  >
-              {seasons.map((s) => (
-                <option key={s} value={s}>
-                  Season {s}
-                </option>
-              ))}
-            </select>
-          </section>
-
-          <section className="watch-episodes-section" aria-label="Episode selection">
-            <p className="watch-section-label">Episodes</p>
-            <div className="watch-episode-grid" id="watch-episode-grid">
-              {episodes.map((ep) => {
-                const epNumber = ep.number;
-                const isActive = epNumber === episode;
-                return (
-                  <button
-                    key={epNumber}
-                    type="button"
-                    className={`watch-episode-btn${isActive ? ' active' : ''}`}
-                    onClick={() => setEpisode(epNumber)}
-                    id={isActive ? 'watch-episode-active' : `watch-episode-${epNumber}`}
-                    aria-current={isActive ? 'true' : undefined}
-                  >
-                    <div className="watch-episode-thumbnail-placeholder">
-                      E{String(epNumber).padStart(2, '0')}
-                    </div>
-                    <div className="watch-episode-info">
-                      <div className="watch-episode-number">{ep.name}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <div className="watch-controls-row">
-            <SubtitleSelector
-              captions={captions}
-              selectedCaption={selectedCaption}
-              onSelect={setSelectedCaption}
-            />
-            <QualitySelector
-              streams={streams}
-              selectedStream={selectedStream}
-              onSelect={changeQuality}
-            />
+            {status && !loading && (
+              <p className="watch-status" aria-live="polite">
+                {status}
+              </p>
+            )}
           </div>
 
-          <section className="watch-more-section" id="watch-more-like-this">
-            <h2 className="watch-more-title">More Like This</h2>
-            {recLoading ? (
-              <div className="watch-more-scroll">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="watch-rec-skeleton" />
-                ))}
-              </div>
-            ) : recommendations.length > 0 ? (
-              <div className="watch-more-scroll">
-                {recommendations.map((item, i) => {
-                  const recId = item.subjectId || item.id;
-                  const recTitle = item.title || item.name || 'Untitled';
-                  const recCover = item.cover?.url || item.coverUrl || '';
-                  const recRating = item.imdbRatingValue;
-
-                  return (
-                    <Link
-                      key={recId || i}
-                      to={`/watch/${recId}`}
-                      className="watch-rec-card"
+          {/* STICKY SIDEBAR */}
+          <aside className="watch-sidebar">
+            {/* AUDIO LANGUAGE */}
+            {details?.dubs?.length > 0 && (
+              <section className="watch-language-section">
+                <p className="watch-section-label">
+                  Audio Language
+                </p>
+                <select
+                  value={selectedDub?.subjectId || details.subjectId}
+                  onChange={handleLanguageChange}
+                  className="watch-season-select"
+                >
+                  {details.dubs.map((dub) => (
+                    <option
+                      key={dub.subjectId}
+                      value={dub.subjectId}
                     >
-                      <div className="watch-rec-thumb">
-                        {recCover ? (
-                          <img src={recCover} alt={recTitle} loading="lazy" />
-                        ) : (
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.5rem',
-                            }}
-                          >
-                            🎬
-                          </div>
-                        )}
+                      {dub.lanName}
+                    </option>
+                  ))}
+                </select>
+              </section>
+            )}
+
+            {/* SEASON SELECTOR */}
+            {seasons.length > 0 && (
+              <section aria-label="Season selection" className="watch-season-section">
+                <p className="watch-section-label">
+                  Season
+                </p>
+                <select
+                  id="watch-season-select"
+                  className="watch-season-select"
+                  value={season}
+                  onChange={handleSeasonChange}
+                >
+                  {seasons.map((s) => (
+                    <option key={s} value={s}>
+                      Season {s}
+                    </option>
+                  ))}
+                </select>
+              </section>
+            )}
+
+            {/* EPISODE SELECTOR GRID */}
+            <section className="watch-episodes-section" aria-label="Episode selection">
+              <p className="watch-section-label">Episodes</p>
+              <div className="watch-episode-grid" id="watch-episode-grid">
+                {episodes.map((ep) => {
+                  const epNumber = ep.number;
+                  const isActive = epNumber === episode;
+                  return (
+                    <button
+                      key={epNumber}
+                      type="button"
+                      className={`watch-episode-btn${isActive ? ' active' : ''}`}
+                      onClick={() => setEpisode(epNumber)}
+                      id={isActive ? 'watch-episode-active' : `watch-episode-${epNumber}`}
+                      aria-current={isActive ? 'true' : undefined}
+                    >
+                      <div className="watch-episode-thumbnail-placeholder">
+                        E{String(epNumber).padStart(2, '0')}
                       </div>
-                      <p className="watch-rec-title">{recTitle}</p>
-                      {recRating && (
-                        <p className="watch-rec-rating">⭐ {recRating}</p>
-                      )}
-                    </Link>
+                      <div className="watch-episode-info">
+                        <div className="watch-episode-number">{ep.name}</div>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
-            ) : (
-              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                No recommendations available.
-              </p>
+            </section>
+          </aside>
+
+          {/* DETAILS CONTAINER */}
+          <div className="watch-details-wrap">
+            <h1 className="watch-title">{episodeLabel}</h1>
+            {episodeSubtitle && (
+              <p className="watch-episode-subtitle">{episodeSubtitle}</p>
             )}
-          </section>
+
+            {metaItems.length > 0 && (
+              <div className="watch-meta">
+                {metaItems.map((item, index) => (
+                  <Fragment key={item.key}>
+                    {index > 0 && <span className="watch-meta-divider">•</span>}
+                    {item.node}
+                  </Fragment>
+                ))}
+              </div>
+            )}
+
+            {language && (
+              <p className="watch-language">Original Language: {language}</p>
+            )}
+
+            {description && (
+              <div className="watch-description-container">
+                <p className={`watch-description${descExpanded ? ' expanded' : ''}`}>
+                  {description}
+                </p>
+
+                {description.length > 160 && (
+                  <button
+                    type="button"
+                    className="watch-read-more"
+                    onClick={() => setDescExpanded((v) => !v)}
+                  >
+                    {descExpanded ? 'Show less' : 'Read more'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* CAST SECTION */}
+            {details?.stars?.length > 0 && (
+              <section className="watch-cast-section">
+                <p className="watch-section-label">Cast</p>
+                <div className="watch-cast-scroll">
+                  {details.stars.map((actor) => (
+                    <Link
+                      key={actor.staffId}
+                      to={`/staff/${actor.staffId}`}
+                      className="watch-cast-card"
+                    >
+                      <div className="watch-cast-avatar-wrap">
+                        <img
+                          src={
+                            actor.avatarUrl ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              actor.name
+                            )}`
+                          }
+                          alt={actor.name}
+                          className="watch-cast-avatar"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="watch-cast-info">
+                        <p className="watch-cast-name">{actor.name}</p>
+                        {actor.character && (
+                          <p className="watch-cast-character">{actor.character}</p>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* CONTROL ROW (QUALITY & SUBTITLES) */}
+            <div className="watch-controls-row">
+              <SubtitleSelector
+                captions={captions}
+                selectedCaption={selectedCaption}
+                onSelect={setSelectedCaption}
+              />
+              <QualitySelector
+                streams={streams}
+                selectedStream={selectedStream}
+                onSelect={changeQuality}
+              />
+            </div>
+
+            {/* RECOMMENDATIONS */}
+            <section className="watch-more-section" id="watch-more-like-this">
+              <h2 className="watch-more-title">More Like This</h2>
+              {recLoading ? (
+                <div className="watch-more-scroll">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="watch-rec-skeleton" />
+                  ))}
+                </div>
+              ) : recommendations.length > 0 ? (
+                <div className="watch-more-scroll">
+                  {recommendations.map((item, i) => {
+                    const recId = item.subjectId || item.id;
+                    const recTitle = item.title || item.name || 'Untitled';
+                    const recCover = item.cover?.url || item.coverUrl || '';
+                    const recRating = item.imdbRatingValue;
+
+                    return (
+                      <Link
+                        key={recId || i}
+                        to={`/watch/${recId}`}
+                        className="watch-rec-card"
+                      >
+                        <div className="watch-rec-thumb">
+                          {recCover ? (
+                            <img src={recCover} alt={recTitle} loading="lazy" />
+                          ) : (
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.5rem',
+                              }}
+                            >
+                              🎬
+                            </div>
+                          )}
+                        </div>
+                        <p className="watch-rec-title">{recTitle}</p>
+                        {recRating && (
+                          <p className="watch-rec-rating">⭐ {recRating}</p>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                  No recommendations available.
+                </p>
+              )}
+            </section>
+          </div>
+
         </div>
       </div>
     </div>
