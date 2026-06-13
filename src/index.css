@@ -56,20 +56,19 @@ body {
 
 ::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #05070d;
+  background: #0a0a0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #E50914, #A855F7);
-  border-radius: 4px;
+  background: #2a2a2a;
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ff4444, #c084fc);
+  background: #3a3a3a;
 }
 
 /* ========================================
@@ -730,11 +729,249 @@ textarea {
   font-family: inherit;
 }
 
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+input[type="search"]::-ms-clear,
+input[type="search"]::-ms-reveal {
+  display: none;
+}
+
 select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   cursor: pointer;
+}
+
+/* ========================================
+   Premium Navbar / Search
+   ======================================== */
+
+#main-navbar {
+  height: 72px !important;
+  background: rgba(8, 8, 8, 0.92) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.45);
+}
+
+#main-navbar > div {
+  align-items: center;
+  gap: 24px;
+}
+
+#navbar-logo {
+  align-items: center;
+}
+
+#main-navbar > div > div.flex-1 {
+  max-width: 720px !important;
+}
+
+#navbar-search-bar,
+#search-bar {
+  width: 100%;
+  max-width: 720px;
+}
+
+#navbar-search-bar > div:first-of-type,
+#search-bar > div:nth-of-type(2) {
+  height: 56px;
+  min-height: 56px;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none;
+  overflow: hidden;
+  transition: all 0.25s ease !important;
+}
+
+#navbar-search-bar:focus-within > div:first-of-type,
+#search-bar:focus-within > div:nth-of-type(2) {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+#search-bar > div:first-child {
+  display: none;
+}
+
+#navbar-search-bar > div:first-of-type > span[aria-hidden],
+#search-bar > div:nth-of-type(2) > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 18px !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+#navbar-search-bar svg,
+#search-bar svg {
+  width: 24px;
+  height: 24px;
+}
+
+#navbar-search-bar input,
+#search-bar input {
+  height: 56px;
+  padding: 0 18px !important;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+#navbar-search-bar input::placeholder,
+#search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+#navbar-search-bar button[aria-label="Clear search"],
+#search-bar button[aria-label="Clear search"] {
+  margin-right: 12px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+#navbar-search-bar button[aria-label="Clear search"]:hover,
+#search-bar button[aria-label="Clear search"]:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+#navbar-search-bar button[aria-label="Clear search"] svg,
+#search-bar button[aria-label="Clear search"] svg {
+  width: 16px;
+  height: 16px;
+}
+
+#search-suggestions {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100%;
+  max-height: 420px !important;
+  overflow-y: auto;
+  margin-top: 10px !important;
+  border-radius: 18px !important;
+  background: rgba(15, 15, 15, 0.98) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+#search-suggestions > button {
+  min-height: 56px;
+  padding: 14px 18px !important;
+  font-size: 18px !important;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.86);
+  transition: all 0.2s ease !important;
+}
+
+#search-suggestions > button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+#search-suggestions > button span:first-child {
+  color: rgba(229, 9, 20, 0.78);
+}
+
+#search-page {
+  padding-top: 112px !important;
+}
+
+#search-page > .grid:first-child {
+  margin-top: 40px;
+}
+
+#search-page > p.text-gray-400 {
+  margin-top: 40px;
+  margin-bottom: 20px !important;
+}
+
+#search-results {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 160px)) !important;
+  gap: 20px !important;
+  justify-content: center;
+  align-items: start;
+  margin-top: 20px;
+}
+
+#search-results .movie-card-v2 {
+  gap: 10px;
+  width: 100%;
+  max-width: 160px;
+  transition: all 0.25s ease;
+}
+
+#search-results .movie-card-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  height: auto;
+}
+
+#search-results .movie-card-title {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+#search-results .movie-card-v2:hover {
+  transform: scale(1.03);
+}
+
+#search-results .movie-card-v2:hover .movie-card-poster {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+}
+
+#search-results .movie-card-v2:hover .movie-card-image {
+  transform: scale(1.04);
+}
+
+@media (min-width: 640px) {
+  #search-results {
+    grid-template-columns: repeat(auto-fill, minmax(148px, 170px)) !important;
+  }
+
+  #search-results .movie-card-v2 {
+    max-width: 170px;
+  }
+}
+
+@media (min-width: 768px) {
+  #search-results {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 180px)) !important;
+  }
+
+  #search-results .movie-card-v2 {
+    max-width: 180px;
+  }
+
+  #search-results .movie-card-title {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  #main-navbar > div {
+    gap: 14px;
+  }
+
+  #navbar-search-bar input {
+    font-size: 15px;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  #search-suggestions > button {
+    font-size: 16px !important;
+  }
 }
 
 /* ========================================

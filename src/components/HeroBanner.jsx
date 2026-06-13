@@ -5,6 +5,7 @@ import HeroSlide from "./HeroSlide";
 import HeroDots from "./HeroDots";
 import HeroArrows from "./HeroArrows";
 import { HERO_FALLBACK_IMAGE } from "./heroUtils";
+import { optimizeImage } from "../utils/imageOptimizer";
 
 const AUTO_SLIDE_MS = 5000;
 
@@ -37,12 +38,12 @@ export default function HeroBanner() {
 
         const sources = {};
         items.forEach((item, index) => {
-          sources[index] = item?.image?.url || HERO_FALLBACK_IMAGE;
+          sources[index] = optimizeImage(item?.image?.url, "banner") || HERO_FALLBACK_IMAGE;
         });
         setImageSources(sources);
 
-        if (items[0]?.image?.url) preloadImage(items[0].image.url);
-        if (items[1]?.image?.url) preloadImage(items[1].image.url);
+        if (items[0]?.image?.url) preloadImage(optimizeImage(items[0].image.url, "banner"));
+        if (items[1]?.image?.url) preloadImage(optimizeImage(items[1].image.url, "banner"));
       } catch (err) {
         if (err.name !== "AbortError" && err.code !== "ERR_CANCELED") {
           console.error("[HeroBanner] Failed to load banners:", err);
@@ -87,7 +88,7 @@ export default function HeroBanner() {
   useEffect(() => {
     if (slides.length === 0) return;
     const nextIndex = (currentIndex + 1) % slides.length;
-    const nextUrl = slides[nextIndex]?.image?.url;
+    const nextUrl = optimizeImage(slides[nextIndex]?.image?.url, "banner");
     preloadImage(nextUrl);
   }, [currentIndex, slides]);
 
@@ -128,9 +129,10 @@ export default function HeroBanner() {
       priority={true}
       imageSrc={
         imageSources[currentIndex] ||
-        slides[currentIndex]?.image?.url ||
+        optimizeImage(slides[currentIndex]?.image?.url, "banner") ||
         HERO_FALLBACK_IMAGE
       }
+      originalImageSrc={slides[currentIndex]?.image?.url}
       onImageError={() =>
         handleImageError(currentIndex)
       }

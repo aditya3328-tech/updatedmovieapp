@@ -1,10 +1,15 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from '../utils/imageOptimizer';
 
 export default function MoviePosterCard({ movie }) {
   if (!movie) return null;
 
   const posterUrl = movie.cover?.url || 'https://via.placeholder.com/200x300?text=No+Image';
+  const posterImage = getOptimizedImageProps(posterUrl, 'poster');
   const rating = movie.imdbRatingValue || 'N/A';
 
   return (
@@ -16,9 +21,14 @@ export default function MoviePosterCard({ movie }) {
       >
         {/* Poster Image */}
         <img
-          src={posterUrl}
+          src={posterImage.src}
           alt={movie.title}
+          width={posterImage.width}
+          height={posterImage.height}
+          loading="lazy"
+          decoding="async"
           className="movie-card-image w-full h-full object-cover"
+          onError={(event) => fallbackToOriginalImage(event, posterUrl)}
         />
 
         {/* Overlay */}

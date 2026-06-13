@@ -51,6 +51,8 @@ export default function SearchBar({
     isFocused && value.trim().length > 0 ? value : '',
     true,
   );
+  console.log("RENDERED SUGGESTIONS", suggestions);
+  console.log("SUGGESTION LENGTH", suggestions?.length);
 
   useEffect(() => {
     if (autoFocus) {

@@ -4,6 +4,10 @@ import Player from '../components/Player';
 import usePlayer from '../hooks/usePlayer';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from '../utils/imageOptimizer';
 import './Watch.css';
 
 const BackIcon = () => (
@@ -444,15 +448,18 @@ export default function Watch() {
                     >
                       <div className="watch-cast-avatar-wrap">
                         <img
-                          src={
+                          {...getOptimizedImageProps(
                             actor.avatarUrl ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              actor.name
-                            )}`
-                          }
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                actor.name
+                              )}`,
+                            'avatar'
+                          )}
                           alt={actor.name}
                           className="watch-cast-avatar"
                           loading="lazy"
+                          decoding="async"
+                          onError={(event) => fallbackToOriginalImage(event, actor.avatarUrl)}
                         />
                       </div>
                       <div className="watch-cast-info">
@@ -492,7 +499,13 @@ export default function Watch() {
                       >
                         <div className="watch-rec-thumb">
                           {recCover ? (
-                            <img src={recCover} alt={recTitle} loading="lazy" />
+                            <img
+                              {...getOptimizedImageProps(recCover, 'thumbnail')}
+                              alt={recTitle}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(event) => fallbackToOriginalImage(event, recCover)}
+                            />
                           ) : (
                             <div
                               style={{

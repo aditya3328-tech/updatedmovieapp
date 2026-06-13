@@ -1,5 +1,9 @@
 import { motion } from 'framer-motion';
 import { useRef, useState } from 'react';
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from '../utils/imageOptimizer';
 
 const ChevronRightIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -84,9 +88,14 @@ export default function CastSection({ cast, loading = false }) {
               <div className="mb-3 rounded-lg overflow-hidden bg-gradient-to-br from-white/5 to-white/10 aspect-[3/4] relative">
                 {actor.image || actor.img || actor.photo ? (
                   <img
-                    src={actor.image || actor.img || actor.photo}
+                    {...getOptimizedImageProps(actor.image || actor.img || actor.photo, 'avatar')}
                     alt={actor.name || actor.actor}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
+                    onError={(event) =>
+                      fallbackToOriginalImage(event, actor.image || actor.img || actor.photo)
+                    }
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-600/20 to-purple-600/20">

@@ -7,6 +7,10 @@ import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from '../utils/imageOptimizer';
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -14,6 +18,12 @@ import "swiper/css/navigation";
 /* SVG Icons */
 const PlayIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
+);
+const AppIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="7" y="2" width="10" height="20" rx="2" />
+    <line x1="11" y1="18" x2="13" y2="18" />
+  </svg>
 );
 const HeartIcon = ({ filled }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill={filled ? '#E50914' : 'none'} stroke={filled ? '#E50914' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -40,6 +50,13 @@ const ShareIcon = () => (
     <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
   </svg>
 );
+const MutedIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <line x1="23" y1="9" x2="17" y2="15" />
+    <line x1="17" y1="9" x2="23" y2="15" />
+  </svg>
+);
 
 export default function Details() {
   const { id } = useParams();
@@ -50,8 +67,17 @@ export default function Details() {
   const [loading, setLoading] = useState(true);
   const [recLoading, setRecLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const favorited = isFavorite(id);
+
+  useEffect(() => {
+    document.body.classList.add('details-page-active');
+
+    return () => {
+      document.body.classList.remove('details-page-active');
+    };
+  }, []);
 
   /* Fetch details */
   useEffect(() => {
@@ -162,6 +188,7 @@ export default function Details() {
 
   const poster =
     details?.cover?.url;
+  const posterImage = getOptimizedImageProps(poster, "poster");
 
   const rating =
     details?.imdbRatingValue;
@@ -174,6 +201,23 @@ export default function Details() {
 
   const releaseDate =
     details?.releaseDate;
+  const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : null;
+  const typeLabel =
+    details?.subjectType === 2
+      ? 'TV Series'
+      : details?.subjectType === 1
+        ? 'Movie'
+        : 'Title';
+  const country = details?.countryName || details?.country || details?.area;
+  const bannerImage = getOptimizedImageProps(poster, "banner");
+  const trailerUrl = details?.trailer?.videoAddress?.url;
+  const watchInAppUrl = details?.detailPath
+    ? `https://movie-box.co/movies/${details.detailPath}?id=${details?.subjectId || id}`
+    : 'https://movie-box.co';
+  const shownDescription =
+    descriptionExpanded || !description || description.length <= 170
+      ? description
+      : `${description.slice(0, 170).trim()}...`;
 
   console.log(details.dubs)
   return (
@@ -184,40 +228,246 @@ export default function Details() {
       className="min-h-screen pb-24"
       id="details-page"
     >
-      {/* Backdrop with Overlay */}
-      <div className="relative h-[380px] md:h-[460px] lg:h-[540px] overflow-hidden">
-        {poster && (
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            controls={false}
-            className="w-full h-full object-cover"
-          >
-            <source
-              src={details?.trailer?.videoAddress?.url}
-              type="video/mp4"
-            />
-          </video>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_30%,rgba(0,0,0,0.5)_100%)] z-10" />
-
-        {/* Back Button */}
+      <div className="px-4 sm:px-6 lg:px-8 max-w-[1840px] mx-auto pt-[92px] md:pt-[116px] relative z-20">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-20 md:top-24 left-4 sm:left-6 z-20"
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="relative mb-8 min-h-[560px] overflow-hidden rounded-[22px] border border-white/5 bg-zinc-950 shadow-2xl md:h-[calc(100vh-136px)] md:min-h-[560px] md:max-h-[680px]"
         >
-          <Link to="/" className="btn-icon">
-            <BackIcon />
-          </Link>
-        </motion.div>
-      </div>
+          <div className="absolute inset-0">
+            {trailerUrl ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls={false}
+                poster={posterImage.src}
+               className="h-full w-full object-cover brightness-110"
+              >
+                <source src={trailerUrl} type="video/mp4" />
+              </video>
+            ) : poster ? (
+              <img
+                src={bannerImage.src}
+                alt=""
+                width={bannerImage.width}
+                height={bannerImage.height}
+                loading="eager"
+                decoding="async"
+                className="h-full w-full object-cover brightness-110"
+                onError={(event) => fallbackToOriginalImage(event, poster)}
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
+            )}
+            <div className="absolute inset-0 bg-black/35" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-black/20 to-black/25" />
+          </div>
 
-      {/* Content */}
-      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 -mt-20 sm:-mt-28 lg:-mt-36">
+          <div className="absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
+            <Link to="/" className="btn-icon bg-black/35 backdrop-blur-md">
+              <BackIcon />
+            </Link>
+          </div>
+
+          <div className="relative z-10 flex min-h-[560px] flex-col justify-center gap-8 px-6 py-10 pt-20 md:h-full md:min-h-[560px] md:flex-row md:items-center md:justify-start md:gap-12 md:px-14 lg:px-20">
+            <motion.div
+              whileHover={{ scale: 1.025 }}
+              className="w-32 shrink-0 overflow-hidden rounded-[16px] bg-zinc-900 shadow-[0_18px_44px_rgba(0,0,0,0.72)] sm:w-40 md:w-48 lg:w-56"
+            >
+              {poster ? (
+                <img
+                  src={posterImage.src}
+                  alt={title}
+                  width={posterImage.width}
+                  height={posterImage.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[2/3] h-full w-full object-cover"
+                  onError={(event) => fallbackToOriginalImage(event, poster)}
+                />
+              ) : (
+                <div className="flex aspect-[2/3] h-full w-full items-center justify-center bg-gradient-to-br from-gray-700/40 to-gray-800/40 text-4xl">
+                  ðŸŽ¬
+                </div>
+              )}
+            </motion.div>
+
+            <div className="max-w-5xl flex-1 pl-2 md:pl-4">
+              <motion.h1
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-3 text-3xl font-black leading-[1.04] text-white sm:text-4xl md:text-5xl lg:text-6xl"
+              >
+                {title}
+              </motion.h1>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="mb-3 flex flex-wrap items-center gap-2.5 text-base font-semibold text-zinc-300 md:text-lg"
+              >
+                {rating && (
+                  <div className="inline-flex items-center gap-2 rounded-md border border-red-400/40 bg-red-500/20 px-2.5 py-1.5 text-white">
+                    <StarIcon />
+                    <span>{rating}</span>
+                  </div>
+                )}
+                {releaseYear && <span>{releaseYear}</span>}
+                <span className="rounded-md bg-white/10 px-2.5 py-1.5 text-base">{typeLabel}</span>
+                {country && <span>{country}</span>}
+              </motion.div>
+
+              {Array.isArray(genres) && genres.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mb-4 flex flex-wrap gap-2"
+                >
+                  {genres.slice(0, 5).map((genre, i) => {
+                    const genreName = typeof genre === 'string' ? genre : genre.name || genre.label;
+                    return (
+                      <span
+                        key={i}
+                        className="rounded-full border border-white/12 bg-black/25 backdrop-blur-md px-4 py-2 text-sm font-medium text-white shadow-sm"
+                      >
+                        {genreName}
+                      </span>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+              {description && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.35 }}
+                  className="mb-4 max-w-4xl"
+                >
+                  <p className="text-base font-medium leading-relaxed text-zinc-300 md:text-lg">
+                    {shownDescription}
+                  </p>
+                  {description.length > 170 && (
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionExpanded((value) => !value)}
+                      className="mt-1 text-base font-bold text-white/90 hover:text-white"
+                    >
+                      {descriptionExpanded ? 'Less' : 'More'}
+                    </button>
+                  )}
+                </motion.div>
+              )}
+
+              {details?.dubs?.length > 0 && (
+                <div className="mb-5">
+                  <h3 className="mb-2 text-base font-bold tracking-tight text-white md:text-lg">
+                    Available Languages
+                    <span className="ml-2 text-sm text-zinc-400">
+                      ({details.dubs.length})
+                    </span>
+                  </h3>
+
+                  <div className="flex flex-wrap gap-2">
+                    {details.dubs.map((dub) => (
+                      <span
+                        key={dub.lanName}
+                        className="cursor-default rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-zinc-200 transition-colors hover:bg-white/15"
+                      >
+                        {dub.lanName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-wrap items-center gap-3"
+              >
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    to={`/watch/${details?.subjectId || id}`}
+                    id="watch-now-btn"
+                    className="inline-flex items-center gap-2.5 rounded-full bg-[#E34234] px-6 py-3 text-base font-bold text-white shadow-[0_18px_40px_rgba(227,66,52,0.35)] transition-all hover:bg-[#f04d3f] sm:px-8"
+                  >
+                    <PlayIcon /> Watch Online
+                  </Link>
+                </motion.div>
+
+                {trailerUrl && (
+                  <motion.a
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={trailerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/15"
+                  >
+                    <PlayIcon /> Trailer
+                  </motion.a>
+                )}
+
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  href={watchInAppUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/15"
+                >
+                  <AppIcon /> Watch in App
+                </motion.a>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFavorite}
+                  id="detail-favorite-btn"
+                  className={`inline-flex h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all ${favorited
+                    ? 'border-red-500/40 bg-red-500/15 text-red-400'
+                    : 'border-white/15 bg-white/10 text-white hover:bg-white/15'
+                    }`}
+                  aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+                  title={favorited ? 'Favorited' : 'Favorite'}
+                >
+                  <HeartIcon filled={favorited} />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleShare}
+                  id="detail-share-btn"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/15"
+                  aria-label="Share"
+                  title="Share"
+                >
+                  <ShareIcon />
+                </motion.button>
+              </motion.div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="absolute bottom-6 right-6 z-20 hidden h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-black/35 text-white/80 backdrop-blur-md transition-all hover:bg-white/10 hover:text-white md:inline-flex"
+            aria-label="Video is muted"
+            title="Muted"
+          >
+            <MutedIcon />
+          </button>
+        </motion.div>
+        {false && (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -232,9 +482,14 @@ export default function Details() {
             >
               {poster ? (
                 <img
-                  src={poster}
+                  src={posterImage.src}
                   alt={title}
+                  width={posterImage.width}
+                  height={posterImage.height}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
+                  onError={(event) => fallbackToOriginalImage(event, poster)}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-700/40 to-gray-800/40 flex items-center justify-center text-4xl">
@@ -389,6 +644,7 @@ export default function Details() {
             </motion.div>
           </div>
         </motion.div>
+        )}
         {details?.stars?.length > 0 && (
           <section className="mb-14">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-5">
@@ -423,14 +679,18 @@ export default function Details() {
                   >
                     <div className="relative overflow-hidden rounded-xl bg-zinc-950 border border-white/5 shadow-md">
                       <img
-                        src={
+                        {...getOptimizedImageProps(
                           actor.avatarUrl ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            actor.name
-                          )}`
-                        }
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              actor.name
+                            )}`,
+                          "avatar"
+                        )}
                         alt={actor.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full aspect-[3/4] object-cover group-hover:scale-110 transition duration-500 ease-out"
+                        onError={(event) => fallbackToOriginalImage(event, actor.avatarUrl)}
                       />
 
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2 md:p-3">

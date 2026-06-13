@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from '../utils/imageOptimizer';
 
 export default function EpisodeList({
   subjectId,
@@ -97,10 +101,12 @@ export default function EpisodeList({
               <div className="aspect-video bg-gradient-to-br from-gray-800/60 to-gray-900/60 overflow-hidden">
                 {ep.thumbnail ? (
                   <img
-                    src={ep.thumbnail}
+                    {...getOptimizedImageProps(ep.thumbnail, 'thumbnail')}
                     alt={ep.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
+                    decoding="async"
+                    onError={(event) => fallbackToOriginalImage(event, ep.thumbnail)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl text-white/30">

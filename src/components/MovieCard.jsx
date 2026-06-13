@@ -1,6 +1,10 @@
 import { memo, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseHindiTitle } from "./movieCardUtils";
+import {
+  fallbackToOriginalImage,
+  getOptimizedImageProps,
+} from "../utils/imageOptimizer";
 
 const FALLBACK_POSTER =
   "https://via.placeholder.com/180x270/111827/E50914?text=StreamWave";
@@ -12,6 +16,10 @@ function MovieCard({ item, movie, layout = "row" }) {
   const posterUrl = useMemo(
     () => data?.cover?.url || FALLBACK_POSTER,
     [data?.cover?.url],
+  );
+  const posterImage = useMemo(
+    () => getOptimizedImageProps(posterUrl, "poster"),
+    [posterUrl],
   );
 
   const { displayTitle, showHindiBadge } = useMemo(
@@ -50,13 +58,15 @@ function MovieCard({ item, movie, layout = "row" }) {
     >
       <div className="movie-card-poster relative overflow-hidden rounded-[14px] bg-[#111827]">
         <img
-          src={posterUrl}
+          src={posterImage.src}
           alt={displayTitle || "Title"}
           loading="lazy"
           decoding="async"
+          width={posterImage.width}
+          height={posterImage.height}
           className="movie-card-image block h-full w-full object-cover rounded-[14px]"
           onError={(e) => {
-            e.currentTarget.src = FALLBACK_POSTER;
+            fallbackToOriginalImage(e, posterUrl);
           }}
         />
 

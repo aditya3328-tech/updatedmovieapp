@@ -32,10 +32,12 @@ export default function useSearchSuggestions(keyword, enabled = true) {
       abortController.current = new AbortController();
 
       try {
-        const words = await movieService.searchSuggest(keyword, {
+        const suggestions = await movieService.searchSuggest(keyword, {
           signal: abortController.current.signal,
         });
-        setSuggestions(words);
+        console.log("HOOK STATE", suggestions);
+        console.log("SUGGESTION LENGTH", suggestions?.length);
+        setSuggestions(suggestions);
       } catch (err) {
         if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
           setSuggestions([]);
@@ -57,6 +59,9 @@ export default function useSearchSuggestions(keyword, enabled = true) {
       abortController.current?.abort();
     };
   }, []);
+
+  console.log("HOOK STATE", suggestions);
+  console.log("SUGGESTION LENGTH", suggestions?.length);
 
   return { suggestions, loading };
 }

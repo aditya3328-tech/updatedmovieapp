@@ -9,6 +9,33 @@ let homeCache = null;
 let homeCacheTime = 0;
 
 const HOME_CACHE_DURATION = 5 * 60 * 1000; // 5 min
+const MAX_SUGGESTIONS = 10;
+
+const toSuggestionWords = (items = []) =>
+  items
+    .map((item) =>
+      typeof item === "string"
+        ? item
+        : item?.word || item?.title || item?.subject?.title
+    )
+    .filter(Boolean);
+
+const mergeSuggestions = (...groups) => {
+  const seen = new Set();
+  const suggestions = [];
+
+  groups.flat().forEach((word) => {
+    const normalized = word.trim();
+    const key = normalized.toLowerCase();
+
+    if (!normalized || seen.has(key)) return;
+
+    seen.add(key);
+    suggestions.push(normalized);
+  });
+
+  return suggestions.slice(0, MAX_SUGGESTIONS);
+};
 
 const movieService = {
   /**
@@ -28,11 +55,56 @@ const movieService = {
         { signal },
       );
 
-      const items = response?.data?.data?.items || [];
-      return items
-        .map((item) => item?.word)
-        .filter(Boolean)
-        .slice(0, 10);
+      const items =
+        response?.data?.data?.items ||
+        response?.data?.data?.suggestions ||
+        response?.data?.data?.list ||
+        response?.data?.data ||
+        response?.data?.items ||
+        response?.data?.suggestions ||
+        response?.data?.list ||
+        [];
+      console.log("API ITEMS", response?.data?.data?.items);
+      const suggestions = mergeSuggestions(toSuggestionWords(items));
+      console.log("SERVICE OUTPUT", suggestions);
+
+      if (suggestions.length > 1) {
+        return suggestions;
+      }
+
+      try {
+        const fallbackResponse = await apiClient.post(
+          ENDPOINTS.SEARCH,
+          {
+            keyword: keyword.trim(),
+            page: 1,
+            perPage: MAX_SUGGESTIONS,
+            subjectType: 0,
+          },
+          { signal },
+        );
+
+        const fallbackItems =
+          fallbackResponse?.data?.data?.items ||
+          fallbackResponse?.data?.items ||
+          [];
+
+        return mergeSuggestions(suggestions, toSuggestionWords(fallbackItems));
+      } catch (fallbackError) {
+        if (
+          fallbackError.name === "AbortError" ||
+          fallbackError.code === "ERR_CANCELED"
+        ) {
+          throw fallbackError;
+        }
+
+        log(
+          "warn",
+          `[movieService] searchSuggest() fallback failed for: "${keyword}"`,
+          fallbackError.message,
+        );
+        return suggestions;
+      }
     } catch (error) {
       if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
         log(

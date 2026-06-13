@@ -38,17 +38,18 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      id="main-navbar"
-      initial={{ y: -70 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 h-[70px]"
-      style={{
-        background: 'rgba(0, 0, 0, 0.85)',
-        backdropFilter: 'blur(20px)',
-      }}
-    >
-      <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sm:gap-6 lg:gap-8 max-w-[1920px] mx-auto w-full">
+  id="main-navbar"
+  initial={{ y: -70 }}
+  animate={{ y: 0 }}
+  transition={{ duration: 0.5 }}
+  className="fixed top-0 left-0 right-0 z-50 h-[78px]"
+  style={{
+    background: 'rgba(0,0,0,0.82)',
+    backdropFilter: 'blur(20px)',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  }}
+>
+      <div className="h-full px-6 sm:px-10 lg:px-16 xl:px-20 flex items-center justify-between gap-6 max-w-[1800px] mx-auto w-full">
         {/* Left: Logo */}
         <Link
           to="/"
@@ -80,7 +81,7 @@ export default function Navbar() {
           onClick={handleFavoritesClick}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white/90 hover:bg-white/5 transition-all shrink-0"
           id="navbar-favorites"
           aria-label="Go to favorites"
         >

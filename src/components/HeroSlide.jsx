@@ -5,6 +5,7 @@ import {
   parseGenreTags,
   getSubjectTypeLabel,
 } from "./heroUtils";
+import { fallbackToOriginalImage } from "../utils/imageOptimizer";
 
 const HERO_OVERLAY_STYLE = {
   background:
@@ -17,6 +18,7 @@ export default function HeroSlide({
   priority = false,
   onImageError,
   imageSrc,
+  originalImageSrc,
 }) {
   const subject = item.subject;
   const subjectId = String(item.subjectId);
@@ -38,7 +40,16 @@ export default function HeroSlide({
         loading={priority ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : "auto"}
         decoding="async"
-        onError={onImageError}
+        width={1200}
+        height={675}
+        onError={(event) => {
+          if (event.currentTarget.dataset.fallbackApplied === "true") {
+            onImageError?.();
+            return;
+          }
+
+          fallbackToOriginalImage(event, originalImageSrc);
+        }}
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
 

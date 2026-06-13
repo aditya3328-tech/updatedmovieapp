@@ -7,6 +7,8 @@ export default function SuggestionsDropdown({
   onSelect,
 }) {
   const show = visible && (loading || suggestions.length > 0);
+  console.log("RENDERED SUGGESTIONS", suggestions);
+  console.log("SUGGESTION LENGTH", suggestions?.length);
 
   return (
     <AnimatePresence>
