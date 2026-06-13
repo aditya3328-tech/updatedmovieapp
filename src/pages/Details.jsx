@@ -5,15 +5,10 @@ import Loader, { SkeletonDetail } from '../components/Loader';
 import MovieRow from '../components/MovieRow';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import {
   fallbackToOriginalImage,
   getOptimizedImageProps,
 } from '../utils/imageOptimizer';
-
-import "swiper/css";
-import "swiper/css/navigation";
 
 /* SVG Icons */
 const PlayIcon = () => (
@@ -214,10 +209,11 @@ export default function Details() {
   const watchInAppUrl = details?.detailPath
     ? `https://movie-box.co/movies/${details.detailPath}?id=${details?.subjectId || id}`
     : 'https://movie-box.co';
+  const descriptionLimit = 120;
   const shownDescription =
-    descriptionExpanded || !description || description.length <= 170
+    descriptionExpanded || !description || description.length <= descriptionLimit
       ? description
-      : `${description.slice(0, 170).trim()}...`;
+      : `${description.slice(0, descriptionLimit).trim()}...`;
 
   console.log(details.dubs)
   return (
@@ -233,7 +229,7 @@ export default function Details() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="relative mb-8 min-h-[560px] overflow-hidden rounded-[22px] border border-white/5 bg-zinc-950 shadow-2xl md:h-[calc(100vh-136px)] md:min-h-[560px] md:max-h-[680px]"
+          className="relative mb-10 min-h-[620px] overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/90 shadow-[0_32px_90px_rgba(0,0,0,0.72)] md:h-[calc(100vh-132px)] md:min-h-[600px] md:max-h-[700px]"
         >
           <div className="absolute inset-0">
             {trailerUrl ? (
@@ -242,9 +238,9 @@ export default function Details() {
                 muted
                 loop
                 playsInline
-                controls={false}
+                controls
                 poster={posterImage.src}
-               className="h-full w-full object-cover brightness-110"
+                className="h-full w-full scale-110 object-cover opacity-70 brightness-70 saturate-110"
               >
                 <source src={trailerUrl} type="video/mp4" />
               </video>
@@ -256,15 +252,13 @@ export default function Details() {
                 height={bannerImage.height}
                 loading="eager"
                 decoding="async"
-                className="h-full w-full object-cover brightness-110"
+                className="h-full w-full scale-110 object-cover opacity-90 brightness-110 saturate-110"
                 onError={(event) => fallbackToOriginalImage(event, poster)}
               />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
             )}
-            <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/25" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-black/20 to-black/25" />
+            <div className="absolute inset-0 bg-black/[0.55]" />
           </div>
 
           <div className="absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
@@ -273,10 +267,11 @@ export default function Details() {
             </Link>
           </div>
 
-          <div className="relative z-10 flex min-h-[560px] flex-col justify-center gap-8 px-6 py-10 pt-20 md:h-full md:min-h-[560px] md:flex-row md:items-center md:justify-start md:gap-12 md:px-14 lg:px-20">
+          <div className="relative z-10 flex min-h-[620px] items-center justify-center px-5 py-10 pt-24 sm:px-8 md:h-full md:min-h-[600px] md:px-12 lg:px-16 xl:px-20">
+            <div className="flex w-full max-w-[1180px] flex-col items-center gap-8 md:h-[460px] md:flex-row md:items-stretch md:gap-12 lg:gap-16">
             <motion.div
               whileHover={{ scale: 1.025 }}
-              className="w-32 shrink-0 overflow-hidden rounded-[16px] bg-zinc-900 shadow-[0_18px_44px_rgba(0,0,0,0.72)] sm:w-40 md:w-48 lg:w-56"
+              className="h-[300px] w-[200px] shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-zinc-900 shadow-[0_18px_42px_rgba(0,0,0,0.62)] transition-transform duration-500 sm:h-[330px] sm:w-[220px] md:h-full md:w-[307px]"
             >
               {poster ? (
                 <img
@@ -296,12 +291,13 @@ export default function Details() {
               )}
             </motion.div>
 
-            <div className="max-w-5xl flex-1 pl-2 md:pl-4">
+            <div className="flex h-full w-full min-w-0 max-w-[760px] flex-1 flex-col justify-between p-5 sm:p-6 md:p-7">
+              <div className="min-w-0">
               <motion.h1
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mb-3 text-3xl font-black leading-[1.04] text-white sm:text-4xl md:text-5xl lg:text-6xl"
+                className="mb-3 max-w-[760px] text-4xl font-black leading-[1.02] tracking-normal text-white drop-shadow-[0_8px_32px_rgba(0,0,0,0.65)] sm:text-5xl md:line-clamp-2 md:text-[46px] lg:text-[58px]"
               >
                 {title}
               </motion.h1>
@@ -310,16 +306,16 @@ export default function Details() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="mb-3 flex flex-wrap items-center gap-2.5 text-base font-semibold text-zinc-300 md:text-lg"
+                className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-base font-semibold text-zinc-200 md:text-lg"
               >
                 {rating && (
-                  <div className="inline-flex items-center gap-2 rounded-md border border-red-400/40 bg-red-500/20 px-2.5 py-1.5 text-white">
+                  <div className="inline-flex w- justify-center items-center gap-2 rounded-lg border border-amber-400/[0.35] bg-amber-500/10 px-3 py-1.5 text-amber-200 shadow-[0_10px_30px_rgba(245,158,11,0.12)]">
                     <StarIcon />
                     <span>{rating}</span>
                   </div>
                 )}
                 {releaseYear && <span>{releaseYear}</span>}
-                <span className="rounded-md bg-white/10 px-2.5 py-1.5 text-base">{typeLabel}</span>
+                <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-base text-white">{typeLabel}</span>
                 {country && <span>{country}</span>}
               </motion.div>
 
@@ -328,14 +324,14 @@ export default function Details() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="mb-4 flex flex-wrap gap-2"
+                  className="mb-4 flex gap-2.5"
                 >
                   {genres.slice(0, 5).map((genre, i) => {
                     const genreName = typeof genre === 'string' ? genre : genre.name || genre.label;
                     return (
                       <span
                         key={i}
-                        className="rounded-full border border-white/12 bg-black/25 backdrop-blur-md px-4 py-2 text-sm font-medium text-white shadow-sm"
+                        className="rounded w-16 text-center border border-white/[0.18] bg-black/30 px-4 py-4 text-sm font-semibold text-white shadow-sm backdrop-blur-xl transition-colors hover:bg-white/[0.12]"
                       >
                         {genreName}
                       </span>
@@ -349,16 +345,16 @@ export default function Details() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.35 }}
-                  className="mb-4 max-w-4xl"
+                  className="mb-4 max-w-[600px]"
                 >
-                  <p className="text-base font-medium leading-relaxed text-zinc-300 md:text-lg">
+                  <p className="text-base font-medium leading-7 text-zinc-200/90 md:text-lg md:leading-8">
                     {shownDescription}
                   </p>
-                  {description.length > 170 && (
+                  {description.length > descriptionLimit && (
                     <button
                       type="button"
                       onClick={() => setDescriptionExpanded((value) => !value)}
-                      className="mt-1 text-base font-bold text-white/90 hover:text-white"
+                      className="mt-1 inline-flex text-sm font-bold text-white/90 hover:text-white"
                     >
                       {descriptionExpanded ? 'Less' : 'More'}
                     </button>
@@ -367,19 +363,18 @@ export default function Details() {
               )}
 
               {details?.dubs?.length > 0 && (
-                <div className="mb-5">
-                  <h3 className="mb-2 text-base font-bold tracking-tight text-white md:text-lg">
+                <div className="w-full max-w-[1000px]">
+                  <h3 className="mb-2.5 text-sm font-bold tracking-normal text-white">
                     Available Languages
-                    <span className="ml-2 text-sm text-zinc-400">
-                      ({details.dubs.length})
-                    </span>
+({details.dubs.length})
+                   
                   </h3>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex max-h-[100px] max-w-[1000px] flex-wrap gap-1.5 overflow-hidden">
                     {details.dubs.map((dub) => (
                       <span
                         key={dub.lanName}
-                        className="cursor-default rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-zinc-200 transition-colors hover:bg-white/15"
+                        className="inline-flex h-8 w-30  justify-center cursor-default items-center rounded-full border border-white/10 bg-black/25 px-3.5 text-sm font-semibold tracking-normal text-zinc-100 shadow-sm backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
                       >
                         {dub.lanName}
                       </span>
@@ -387,18 +382,19 @@ export default function Details() {
                   </div>
                 </div>
               )}
+              </div>
 
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="flex flex-wrap items-center gap-3"
+                className="mt-5 flex flex-wrap items-center gap-4 md:flex-nowrap"
               >
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="shrink-0">
                   <Link
                     to={`/watch/${details?.subjectId || id}`}
                     id="watch-now-btn"
-                    className="inline-flex items-center gap-2.5 rounded-full bg-[#E34234] px-6 py-3 text-base font-bold text-white shadow-[0_18px_40px_rgba(227,66,52,0.35)] transition-all hover:bg-[#f04d3f] sm:px-8"
+                    className="flex h-12 w-40 items-center justify-center gap-2.5  rounded-xl bg-[#E50914]  text-base font-extrabold text-white shadow-[0_16px_38px_rgba(229,9,20,0.48)] transition-all hover:bg-[#ff1f2d] hover:shadow-[0_20px_52px_rgba(229,9,20,0.62)]"
                   >
                     <PlayIcon /> Watch Online
                   </Link>
@@ -411,7 +407,7 @@ export default function Details() {
                     href={trailerUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/15"
+                    className="inline-flex h-12 w-28 shrink-0 items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border border-white/15 bg-white/[0.08] px-6 text-base font-bold text-white shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-all hover:border-white/25 hover:bg-white/15"
                   >
                     <PlayIcon /> Trailer
                   </motion.a>
@@ -423,7 +419,7 @@ export default function Details() {
                   href={watchInAppUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-6 py-3 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/15"
+                  className="inline-flex h-12 w-40 shrink-0 items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border border-white/15 bg-white/[0.08] px-6 text-base font-bold text-white shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-all hover:border-white/25 hover:bg-white/15"
                 >
                   <AppIcon /> Watch in App
                 </motion.a>
@@ -433,7 +429,7 @@ export default function Details() {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleFavorite}
                   id="detail-favorite-btn"
-                  className={`inline-flex h-12 w-12 items-center justify-center rounded-full border backdrop-blur-md transition-all ${favorited
+                  className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-all ${favorited
                     ? 'border-red-500/40 bg-red-500/15 text-red-400'
                     : 'border-white/15 bg-white/10 text-white hover:bg-white/15'
                     }`}
@@ -448,13 +444,14 @@ export default function Details() {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleShare}
                   id="detail-share-btn"
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/15"
+                  className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.08] text-white shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-all hover:border-white/25 hover:bg-white/15"
                   aria-label="Share"
                   title="Share"
                 >
                   <ShareIcon />
                 </motion.button>
               </motion.div>
+            </div>
             </div>
           </div>
 
@@ -647,68 +644,48 @@ export default function Details() {
         )}
         {details?.stars?.length > 0 && (
           <section className="mb-14">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-5">
-              Cast
-            </h2>
+            <p className="mb-3 inline-block text-xs font-bold uppercase tracking-[0.1em] text-zinc-400">
+              Top Cast ({details.stars.length})
+            </p>
 
-            <Swiper
-              modules={[Navigation]}
-              navigation
-              spaceBetween={16}
-              slidesPerView={3.5}
-              breakpoints={{
-                640: {
-                  slidesPerView: 4.5,
-                },
-                768: {
-                  slidesPerView: 5.5,
-                },
-                1024: {
-                  slidesPerView: 6.5,
-                },
-                1280: {
-                  slidesPerView: 7.5,
-                },
-              }}
-            >
+            <div className="flex gap-4 overflow-x-auto px-1 pb-4 pt-2 [scrollbar-color:rgba(255,255,255,0.1)_transparent] [scrollbar-width:thin]">
               {details.stars.map((actor) => (
-                <SwiperSlide key={actor.staffId}>
-                  <Link
-                    to={`/staff/${actor.staffId}`}
-                    className="block group"
-                  >
-                    <div className="relative overflow-hidden rounded-xl bg-zinc-950 border border-white/5 shadow-md">
-                      <img
-                        {...getOptimizedImageProps(
-                          actor.avatarUrl ||
-                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              actor.name
-                            )}`,
-                          "avatar"
-                        )}
-                        alt={actor.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full aspect-[3/4] object-cover group-hover:scale-110 transition duration-500 ease-out"
-                        onError={(event) => fallbackToOriginalImage(event, actor.avatarUrl)}
-                      />
+                <Link
+                  key={actor.staffId}
+                  to={`/staff/${actor.staffId}`}
+                  className="group w-[130px] shrink-0 scroll-ml-1 text-left no-underline transition-transform duration-300 hover:-translate-y-1.5"
+                >
+                  <div className="mb-2 aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/10 bg-zinc-950 transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_8px_20px_rgba(0,0,0,0.4),0_0_15px_rgba(0,194,255,0.15)]">
+                    <img
+                      {...getOptimizedImageProps(
+                        actor.avatarUrl ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            actor.name
+                          )}`,
+                        "avatar"
+                      )}
+                      alt={actor.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                      onError={(event) => fallbackToOriginalImage(event, actor.avatarUrl)}
+                    />
+                  </div>
 
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2 md:p-3">
-                        <h4 className="text-white font-medium text-xs md:text-sm line-clamp-1">
-                          {actor.name}
-                        </h4>
+                  <div className="w-full px-0.5">
+                    <p className="truncate text-sm font-semibold leading-snug text-white">
+                      {actor.name}
+                    </p>
 
-                        {actor.character && (
-                          <p className="text-zinc-400 text-[10px] md:text-xs line-clamp-1">
-                            {actor.character}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                </SwiperSlide>
+                    {actor.character && (
+                      <p className="mt-1 truncate text-xs leading-snug text-zinc-400">
+                        {actor.character}
+                      </p>
+                    )}
+                  </div>
+                </Link>
               ))}
-            </Swiper>
+            </div>
           </section>
         )}
 
