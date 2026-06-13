@@ -174,8 +174,8 @@ export default function Details() {
 
   const releaseDate =
     details?.releaseDate;
-    
-console.log(details.dubs)
+
+  console.log(details.dubs)
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -185,7 +185,7 @@ console.log(details.dubs)
       id="details-page"
     >
       {/* Backdrop with Overlay */}
-      <div className="relative h-80 sm:h-96 lg:h-[420px] overflow-hidden -mb-24 sm:-mb-32 lg:-mb-40">
+      <div className="relative h-[380px] md:h-[460px] lg:h-[540px] overflow-hidden">
         {poster && (
           <video
             autoPlay
@@ -201,14 +201,14 @@ console.log(details.dubs)
             />
           </video>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_30%,rgba(0,0,0,0.5)_100%)] z-10" />
 
         {/* Back Button */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-20 md:top-24 left-4 sm:left-6 z-10"
+          className="absolute top-20 md:top-24 left-4 sm:left-6 z-20"
         >
           <Link to="/" className="btn-icon">
             <BackIcon />
@@ -217,18 +217,18 @@ console.log(details.dubs)
       </div>
 
       {/* Content */}
-      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-10">
+      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-20 -mt-20 sm:-mt-28 lg:-mt-36">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-10 mb-12"
+          className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-10 mb-12 bg-zinc-950/50 backdrop-blur-md p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/5 shadow-2xl"
         >
           {/* Poster Card */}
           <div className="flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.03 }}
-              className="w-40 sm:w-48 aspect-[2/3] rounded-lg overflow-hidden glass shadow-2xl border border-white/10"
+              className="w-32 sm:w-36 md:w-40 aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.7)]"
             >
               {poster ? (
                 <img
@@ -251,7 +251,7 @@ console.log(details.dubs)
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4 leading-tight"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-white mb-3 leading-snug"
             >
               {title}
             </motion.h1>
@@ -264,13 +264,13 @@ console.log(details.dubs)
               className="flex flex-wrap items-center gap-3 mb-5"
             >
               {rating && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-amber-500/30 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm font-semibold">
                   <StarIcon />
                   <span className="font-bold text-amber-400">{rating}</span>
                 </div>
               )}
               {releaseDate && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass border border-white/10 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm">
                   <CalendarIcon />
                   <span className="text-gray-300">{releaseDate}</span>
                 </div>
@@ -290,7 +290,7 @@ console.log(details.dubs)
                   return (
                     <span
                       key={i}
-                      className="px-3 py-1.5 rounded-full bg-red-600/20 text-red-300 text-xs font-semibold border border-red-600/30"
+                      className="px-3 py-1 rounded-full bg-red-950/20 border border-red-900/20 text-red-400 text-[11px] font-bold uppercase tracking-wider"
                     >
                       {genreName}
                     </span>
@@ -304,39 +304,44 @@ console.log(details.dubs)
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
-              className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 max-w-2xl line-clamp-3"
+              className="text-zinc-400 text-sm md:text-[15px] leading-relaxed mb-8 max-w-[850px]"
             >
               {description}
             </motion.p>
-{details?.dubs?.length > 0 && (
-  <div className="mb-6">
-    <h3 className="text-white text-xl font-bold mb-3">
-      🌐 Available Languages
-      <span className="text-gray-400 ml-2 text-base">
-        ({details.dubs.length})
-      </span>
-    </h3>
 
-    <div className="flex flex-wrap gap-2">
-      {details.dubs.map((dub) => (
-        <span
-          key={dub.lanName}
-          className="
-            px-3 py-1
-            rounded-full
-            bg-red-500/10
-            border border-red-500/20
-            text-red-300
-            text-sm
-            font-medium
-          "
-        >
-          {dub.lanName}
-        </span>
-      ))}
-    </div>
-  </div>
-)}
+            {details?.dubs?.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-white text-lg font-bold mb-3 tracking-tight">
+                  🌐 Available Languages
+                  <span className="text-zinc-500 ml-2 text-sm">
+                    ({details.dubs.length})
+                  </span>
+                </h3>
+
+                <div className="flex flex-wrap gap-2">
+                  {details.dubs.map((dub) => (
+                    <span
+                      key={dub.lanName}
+                      className="
+                        px-3.5 py-1.5
+                        rounded-full
+                        bg-red-950/20
+                        border border-red-900/20
+                        text-red-300
+                        text-xs
+                        font-semibold
+                        tracking-wide
+                        cursor-default
+                        hover:bg-red-900/20
+                        transition-colors
+                      "
+                    >
+                      {dub.lanName}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <motion.div
@@ -352,7 +357,7 @@ console.log(details.dubs)
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="btn-primary px-6 py-3"
+                  className="flex items-center gap-2.5 px-8 py-3.5 rounded-lg bg-[#E50914] text-white hover:bg-[#FF1B2D] transition-all font-bold text-base shadow-[0_4px_15px_rgba(229,9,20,0.4)] hover:shadow-[0_6px_20px_rgba(229,9,20,0.6)] cursor-pointer"
                 >
                   <PlayIcon /> Watch Now
                 </motion.button>
@@ -363,9 +368,9 @@ console.log(details.dubs)
                 whileTap={{ scale: 0.95 }}
                 onClick={handleFavorite}
                 id="detail-favorite-btn"
-                className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all text-sm ${favorited
-                  ? 'bg-red-600/20 border-red-600/50 text-red-400'
-                  : 'glass border-white/10 text-white hover:bg-white/10'
+                className={`flex items-center gap-2 px-6 py-3.5 rounded-lg font-semibold border transition-all text-sm cursor-pointer shadow-md ${favorited
+                  ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                  : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                   }`}
               >
                 <HeartIcon filled={favorited} />
@@ -377,75 +382,75 @@ console.log(details.dubs)
                 whileTap={{ scale: 0.95 }}
                 onClick={handleShare}
                 id="detail-share-btn"
-                className="flex items-center gap-2 px-5 py-3 glass rounded-lg font-semibold text-white border border-white/10 hover:bg-white/10 text-sm transition-all"
+                className="flex items-center gap-2 px-6 py-3.5 bg-white/5 border border-white/10 rounded-lg font-semibold text-white hover:bg-white/10 text-sm transition-all shadow-md cursor-pointer"
               >
                 <ShareIcon /> Share
               </motion.button>
             </motion.div>
           </div>
         </motion.div>
-      {details?.stars?.length > 0 && (
-  <section className="mb-12">
-    <h2 className="text-3xl font-black text-white mb-6">
-      Cast
-    </h2>
+        {details?.stars?.length > 0 && (
+          <section className="mb-14">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-5">
+              Cast
+            </h2>
 
-    <Swiper
-      modules={[Navigation]}
-      navigation
-      spaceBetween={16}
-      slidesPerView={2.2}
-      breakpoints={{
-        640: {
-          slidesPerView: 3.2,
-        },
-        768: {
-          slidesPerView: 4.2,
-        },
-        1024: {
-          slidesPerView: 5.2,
-        },
-        1280: {
-          slidesPerView: 6.2,
-        },
-      }}
-    >
-      {details.stars.map((actor) => (
-        <SwiperSlide key={actor.staffId}>
-          <Link
-            to={`/staff/${actor.staffId}`}
-            className="block group"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-white/10">
-              <img
-                src={
-                  actor.avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    actor.name
-                  )}`
-                }
-                alt={actor.name}
-                className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition duration-300"
-              />
+            <Swiper
+              modules={[Navigation]}
+              navigation
+              spaceBetween={16}
+              slidesPerView={3.5}
+              breakpoints={{
+                640: {
+                  slidesPerView: 4.5,
+                },
+                768: {
+                  slidesPerView: 5.5,
+                },
+                1024: {
+                  slidesPerView: 6.5,
+                },
+                1280: {
+                  slidesPerView: 7.5,
+                },
+              }}
+            >
+              {details.stars.map((actor) => (
+                <SwiperSlide key={actor.staffId}>
+                  <Link
+                    to={`/staff/${actor.staffId}`}
+                    className="block group"
+                  >
+                    <div className="relative overflow-hidden rounded-xl bg-zinc-950 border border-white/5 shadow-md">
+                      <img
+                        src={
+                          actor.avatarUrl ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            actor.name
+                          )}`
+                        }
+                        alt={actor.name}
+                        className="w-full aspect-[3/4] object-cover group-hover:scale-110 transition duration-500 ease-out"
+                      />
 
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3">
-                <h4 className="text-white font-semibold text-sm line-clamp-1">
-                  {actor.name}
-                </h4>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2 md:p-3">
+                        <h4 className="text-white font-medium text-xs md:text-sm line-clamp-1">
+                          {actor.name}
+                        </h4>
 
-                {actor.character && (
-                  <p className="text-gray-300 text-xs line-clamp-1">
-                    {actor.character}
-                  </p>
-                )}
-              </div>
-            </div>
-          </Link>
-        </SwiperSlide>
-      ))}
-    </Swiper>
-  </section>
-)}
+                        {actor.character && (
+                          <p className="text-zinc-400 text-[10px] md:text-xs line-clamp-1">
+                            {actor.character}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </section>
+        )}
 
         {/* Similar Content */}
         <motion.section

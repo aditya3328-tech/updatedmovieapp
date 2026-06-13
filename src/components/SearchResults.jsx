@@ -18,7 +18,7 @@ function ResultsSkeleton() {
 
 export default function SearchResults({
   query,
-  results,
+  results = [],
   loading,
   error,
   onRetry,
@@ -87,7 +87,11 @@ export default function SearchResults({
         id="search-results"
       >
         {results.map((item) => (
-          <MovieCard key={item.subjectId} item={item} layout="grid" />
+          <MovieCard
+            key={item.subjectId || `${item.title}-${item.releaseDate || ''}`}
+            item={item}
+            layout="grid"
+          />
         ))}
       </motion.div>
 

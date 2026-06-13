@@ -77,14 +77,20 @@ body {
    ======================================== */
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -95,6 +101,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -106,6 +113,7 @@ body {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -113,18 +121,24 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(229, 9, 20, 0.8);
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -167,6 +181,7 @@ body {
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -178,12 +193,10 @@ body {
    ======================================== */
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 75%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -248,18 +261,14 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.85) 0%,
-    rgba(0, 0, 0, 0.55) 35%,
-    rgba(0, 0, 0, 0.15) 70%,
-    rgba(0, 0, 0, 0.45) 100%
-  ),
-  linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.95),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 0, 0, 0.85) 0%,
+      rgba(0, 0, 0, 0.55) 35%,
+      rgba(0, 0, 0, 0.15) 70%,
+      rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(to top,
+      rgba(0, 0, 0, 0.95),
+      transparent);
   z-index: 2;
 }
 
@@ -593,12 +602,10 @@ body {
 .movie-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(5, 7, 13, 0.98) 0%,
-    rgba(5, 7, 13, 0.7) 40%,
-    transparent 100%
-  );
+  background: linear-gradient(to top,
+      rgba(5, 7, 13, 0.98) 0%,
+      rgba(5, 7, 13, 0.7) 40%,
+      transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -738,7 +745,12 @@ select {
   color: #9ca3af;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   letter-spacing: -0.02em;
 }
 
@@ -774,12 +786,10 @@ small {
    ======================================== */
 
 .player-controls {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.95) 0%,
-    rgba(0, 0, 0, 0.6) 40%,
-    transparent 100%
-  );
+  background: linear-gradient(to top,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.6) 40%,
+      transparent 100%);
 }
 
 /* ========================================

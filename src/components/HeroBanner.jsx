@@ -8,6 +8,7 @@ import { HERO_FALLBACK_IMAGE } from "./heroUtils";
 
 const AUTO_SLIDE_MS = 5000;
 
+
 function preloadImage(url) {
   if (!url) return;
   const img = new Image();
@@ -112,36 +113,40 @@ export default function HeroBanner() {
   }
 
   return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="hero-banner relative w-screen h-[60vh] md:h-[75vh] lg:h-[88vh] overflow-hidden bg-[#05070d] mt-[70px]"
-      aria-roledescription="carousel"
-      aria-label="Featured titles"
-    >
-      {slides.map((item, index) => (
-        <HeroSlide
-          key={item.subjectId || index}
-          item={item}
-          isActive={index === currentIndex}
-          priority={index === currentIndex || index === (currentIndex + 1) % slides.length}
-          imageSrc={imageSources[index] || item?.image?.url || HERO_FALLBACK_IMAGE}
-          onImageError={() => handleImageError(index)}
-        />
-      ))}
+  <motion.section
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className="hero-banner relative w-screen h-[60vh] md:h-[75vh] lg:h-[88vh] overflow-hidden bg-[#05070d] mt-[70px]"
+    aria-roledescription="carousel"
+    aria-label="Featured titles"
+  >
+    <HeroSlide
+      key={slides[currentIndex]?.subjectId || currentIndex}
+      item={slides[currentIndex]}
+      isActive={true}
+      priority={true}
+      imageSrc={
+        imageSources[currentIndex] ||
+        slides[currentIndex]?.image?.url ||
+        HERO_FALLBACK_IMAGE
+      }
+      onImageError={() =>
+        handleImageError(currentIndex)
+      }
+    />
 
-      <HeroArrows
-        onPrev={goPrev}
-        onNext={goNext}
-        visible={slides.length > 1}
-      />
+    <HeroArrows
+      onPrev={goPrev}
+      onNext={goNext}
+      visible={slides.length > 1}
+    />
 
-      <HeroDots
-        count={slides.length}
-        current={currentIndex}
-        onSelect={goTo}
-      />
-    </motion.section>
-  );
+    <HeroDots
+      count={slides.length}
+      current={currentIndex}
+      onSelect={goTo}
+    />
+  </motion.section>
+);
 }

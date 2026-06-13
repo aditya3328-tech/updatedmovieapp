@@ -26,12 +26,14 @@ const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || (isProd ? PROD_API_BASE : '/api'),
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '15000'),
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'lang': 'en',
-    'versioncode': '11',
-    'clienttype': '0',
-  },
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'lang': 'en',
+  'versioncode': '11',
+  'clienttype': '0',
+
+  Authorization:'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjg5NDQ2ODQzMjM3MzI2MDg1MTIsImF0cCI6MywiZXh0IjoiMTc4MDI4ODA4MiIsImV4cCI6MTc4ODA2NDA4MiwiaWF0IjoxNzgwMjg3NzgyfQ.30FAw16jFMuEHeUfjmSN1atbeYSZUn4QHFIxp3repbI',
+},
 });
 
 /* ========================================

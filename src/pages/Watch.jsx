@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Player from '../components/Player';
-import QualitySelector from '../components/QualitySelector';
-import SubtitleSelector from '../components/SubtitleSelector';
 import usePlayer from '../hooks/usePlayer';
 import { usePlayerContext } from '../context/PlayerContext';
 import movieService from '../services/movieService';
@@ -436,7 +434,7 @@ export default function Watch() {
             {/* CAST SECTION */}
             {details?.stars?.length > 0 && (
               <section className="watch-cast-section">
-                <p className="watch-section-label">Cast</p>
+                <p className="watch-section-label">Top Cast ({details.stars.length})</p>
                 <div className="watch-cast-scroll">
                   {details.stars.map((actor) => (
                     <Link
@@ -468,20 +466,6 @@ export default function Watch() {
                 </div>
               </section>
             )}
-
-            {/* CONTROL ROW (QUALITY & SUBTITLES) */}
-            <div className="watch-controls-row">
-              <SubtitleSelector
-                captions={captions}
-                selectedCaption={selectedCaption}
-                onSelect={setSelectedCaption}
-              />
-              <QualitySelector
-                streams={streams}
-                selectedStream={selectedStream}
-                onSelect={changeQuality}
-              />
-            </div>
 
             {/* RECOMMENDATIONS */}
             <section className="watch-more-section" id="watch-more-like-this">
@@ -539,7 +523,6 @@ export default function Watch() {
               )}
             </section>
           </div>
-
         </div>
       </div>
     </div>

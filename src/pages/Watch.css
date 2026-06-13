@@ -413,41 +413,37 @@ body.watch-page-active {
 }
 
 .watch-cast-card {
-  flex: 0 0 100px;
+  flex: 0 0 130px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   text-decoration: none;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
   transition: var(--transition-smooth);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   scroll-snap-align: start;
 }
 
 .watch-cast-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 194, 255, 0.3);
   transform: translateY(-6px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 194, 255, 0.1);
 }
 
 .watch-cast-avatar-wrap {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   margin-bottom: 8px;
   transition: var(--transition-smooth);
 }
 
 .watch-cast-card:hover .watch-cast-avatar-wrap {
   border-color: var(--secondary-accent);
-  transform: scale(1.05);
+  transform: scale(1.03);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 194, 255, 0.15);
 }
 
 .watch-cast-avatar {
@@ -458,22 +454,24 @@ body.watch-page-active {
 
 .watch-cast-info {
   width: 100%;
+  padding: 0 2px;
 }
 
 .watch-cast-name {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .watch-cast-character {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  margin: 2px 0 0 0;
+  margin: 4px 0 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

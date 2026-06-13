@@ -22,44 +22,45 @@ export default function Home() {
   const [homeSections, setHomeSections] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadHomeRows = useCallback(async () => {
-    try {
-      setLoading(true);
+ const loadHomeRows = useCallback(async () => {
+  try {
+    setLoading(true);
 
-      const loadedSections = [];
-
-      for (const section of rankingSections) {
+    const results = await Promise.all(
+      rankingSections.map(async (section) => {
         try {
           const data =
-           await movieService.getRankingContent(
+            await movieService.getRankingContent(
   section.id,
   1,
-  24
-);
+  12
+)
 
-          loadedSections.push({
+          return {
             title:
               data?.title || section.title,
             items:
               data?.subjectList || [],
-          });
-
-          // Progressive render
-          setHomeSections([
-            ...loadedSections,
-          ]);
+          };
         } catch (err) {
           console.error(
             "Failed:",
             section.title,
             err
           );
+
+          return null;
         }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      })
+    );
+
+    setHomeSections(
+      results.filter(Boolean)
+    );
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     loadHomeRows();

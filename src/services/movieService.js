@@ -5,6 +5,10 @@ import ENDPOINTS from "../api/endpoints";
    Movie Service — All API interactions
    Production-ready with error handling
    ======================================== */
+let homeCache = null;
+let homeCacheTime = 0;
+
+const HOME_CACHE_DURATION = 5 * 60 * 1000; // 5 min
 
 const movieService = {
   /**
@@ -50,29 +54,31 @@ const movieService = {
    * @returns {Promise<Array>} Subject items with cover, rating, etc.
    */
   search: async (query, page = 1, { signal } = {}) => {
+    const keyword = query?.trim();
+    if (!keyword) return [];
+
     try {
       log(
         "debug",
-        `[movieService] search() called with query: "${query}", page: ${page}`,
+        `[movieService] search() called with query: "${keyword}", page: ${page}`,
       );
 
       const response = await apiClient.post(
-  ENDPOINTS.SEARCH,
-  {
-    keyword: query,
-    page,
-    perPage: 28,
-    subjectType: 2,
-  },
-  { signal },
-);
-
-      console.log("SEARCH RESPONSE", response.data);
-      console.log("SEARCH ITEMS", response.data?.data?.items);
+        ENDPOINTS.SEARCH,
+        {
+          keyword,
+          page,
+          perPage: 28,
+          subjectType: 0,
+        },
+        { signal },
+      );
 
       // Check for success status code (code === 0 means SUCCESS)
       if (response.data.code !== 0) {
-        throw new Error(`Search API returned error code: ${response.data.code}, message: ${response.data.message}`);
+        throw new Error(
+          `Search API returned error code: ${response.data.code}, message: ${response.data.message}`,
+        );
       }
 
       const items = response?.data?.data?.items || [];
@@ -81,13 +87,16 @@ const movieService = {
         "debug",
         `[movieService] search() success: ${items.length} items returned`,
       );
+
       return items;
     } catch (error) {
-      log(
-        "error",
-        `[movieService] search() failed for query: "${query}"`,
-        error.message,
-      );
+      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+        log(
+          "error",
+          `[movieService] search() failed for query: "${keyword}"`,
+          error.message,
+        );
+      }
       throw error;
     }
   },

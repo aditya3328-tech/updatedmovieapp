@@ -19,6 +19,7 @@ const FALLBACK_KEYWORDS = [
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [trendingKeywords, setTrendingKeywords] = useState(FALLBACK_KEYWORDS);
+  const urlQuery = searchParams.get('q')?.trim() || '';
 
   const {
     query,
@@ -34,34 +35,33 @@ export default function Search() {
   const observerRef = useRef(null);
   const sentinelRef = useRef(null);
 
-  useEffect(() => {
-    movieService
-      .everyoneSearch(1)
-      .then((keywords) => {
-        if (keywords.length > 0) {
-          setTrendingKeywords(keywords.slice(0, 12));
-        }
-      })
-      .catch(() => {});
-  }, []);
+ useEffect(() => {
+  movieService
+    .everyoneSearch(1)
+    .then((keywords) => {
+      if (keywords.length > 0) {
+        setTrendingKeywords(keywords.slice(0, 12));
+      }
+    })
+    .catch(() => {});
+}, []);
 
   useEffect(() => {
-    const q = searchParams.get('q') || '';
-    if (q) {
-      runSearch(q);
+    if (urlQuery) {
+      runSearch(urlQuery);
     } else {
       clearSearch();
     }
-  }, [searchParams, runSearch, clearSearch]);
+  }, [urlQuery, runSearch, clearSearch]);
+  
 
   const executeSearch = useCallback(
     (term) => {
       const trimmed = term.trim();
       if (!trimmed) return;
       setSearchParams({ q: trimmed }, { replace: true });
-      runSearch(trimmed);
     },
-    [runSearch, setSearchParams],
+    [setSearchParams],
   );
 
   const setupObserver = useCallback(() => {
