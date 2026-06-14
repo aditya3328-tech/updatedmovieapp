@@ -40,7 +40,7 @@ function RowSkeleton() {
   );
 }
 
-function MovieRow({ title, items, movies, isLoading }) {
+function MovieRow({ title, items, movies, isLoading, isNested = false }) {
   const list = useMemo(() => items ?? movies ?? [], [items, movies]);
   const icon = useMemo(() => getSectionIcon(title), [title]);
 
@@ -56,9 +56,9 @@ function MovieRow({ title, items, movies, isLoading }) {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
       viewport={{ once: true, margin: "-40px" }}
-      className="movie-row mb-12"
+      className={isNested ? "mb-12 w-full" : "movie-row mb-12"}
     >
-      <div className="movie-row-header flex items-center justify-between gap-4 mb-5 px-4 sm:px-6 lg:px-8">
+      <div className={`movie-row-header flex items-center justify-between gap-4 mb-5 ${isNested ? "" : "px-4 sm:px-6 lg:px-8"}`}>
         <h2 className="movie-row-title">
           <span className="mr-2" aria-hidden>
             {icon}
@@ -73,7 +73,7 @@ function MovieRow({ title, items, movies, isLoading }) {
         </Link>
       </div>
 
-      <div className="scroll-row overflow-x-auto pb-3 px-4 sm:px-6 lg:px-8">
+      <div className={`scroll-row overflow-x-auto pb-3 ${isNested ? "" : "px-4 sm:px-6 lg:px-8"}`}>
         <div className="movie-row-track flex min-w-full gap-[14px] md:gap-5">
           {list.map((item) => (
             <MovieCard key={item.subjectId} item={item} />

@@ -414,6 +414,9 @@ body.watch-page-active {
 
 .watch-cast-card {
   flex: 0 0 130px;
+  width: 130px;
+  max-width: 130px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

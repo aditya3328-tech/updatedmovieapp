@@ -33,7 +33,7 @@ export default function Home() {
             await movieService.getRankingContent(
   section.id,
   1,
-  24
+  18
 )
 
           return {

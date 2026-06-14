@@ -403,6 +403,75 @@ getStaffSubjects: async (
       throw error;
     }
   },
+
+  /**
+   * Filter subjects (TV Shows, Movies, Animation) by genre/country/year/language/sort
+   * @param {Object} params
+   * @param {number} params.subjectType - 1=TV, 2=Movie, 3=Animation
+   * @param {string} [params.genre]
+   * @param {string} [params.country]
+   * @param {string} [params.year]
+   * @param {string} [params.language]
+   * @param {string} [params.sort] - forYou|hottest|latest|rating
+   * @param {number} [params.page]
+   * @param {number} [params.perPage]
+   * @param {AbortSignal} [params.signal]
+   * @returns {Promise<{ items: Array, pager: Object }>}
+   */
+  filterSubjects: async ({
+    subjectType = 1,
+    genre,
+    country,
+    year,
+    language,
+    sort = "forYou",
+    page = 1,
+    perPage = 28,
+    signal,
+  } = {}) => {
+    try {
+      log(
+        "debug",
+        `[movieService] filterSubjects() type=${subjectType}, genre=${genre}, page=${page}`,
+      );
+
+      const body = {
+        subjectType,
+        page,
+        perPage,
+        sort,
+      };
+      if (subjectType === 3) {
+        body.genre = "Animation";
+      } else if (genre && genre !== "All") {
+        body.genre = genre;
+      }
+      if (country && country !== "All") body.countryName = country;
+      if (year && year !== "All") body.year = year;
+      if (language && language !== "All") body.language = language;
+
+      // Try POST first (matches the pattern used by /subject/search and other endpoints)
+      const response = await apiClient.post(ENDPOINTS.SUBJECT_FILTER, body, {
+        signal,
+      });
+
+      const data = response?.data?.data;
+      return {
+        items: data?.items || [],
+        pager: data?.pager || { hasMore: false, nextPage: null },
+        title: data?.title || "",
+      };
+    } catch (error) {
+      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+        log(
+          "error",
+          `[movieService] filterSubjects() failed`,
+          error.message,
+        );
+      }
+      throw error;
+    }
+  },
 };
 
 export default movieService;

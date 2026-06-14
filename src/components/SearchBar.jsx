@@ -111,7 +111,7 @@ export default function SearchBar({
         id="navbar-search-bar"
       >
         <div
-          className="flex items-center rounded-full border transition-all"
+          className="flex items-center rounded-xl border transition-all"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -133,7 +133,7 @@ export default function SearchBar({
             placeholder={placeholder}
             autoComplete="off"
             aria-label="Search"
-            className="flex-1 bg-transparent px-4 py-3 text-white text-sm placeholder:text-gray-500 outline-none"
+            className="flex-1 bg-transparent px-4 py-1.5 text-white text-sm placeholder:text-gray-500 outline-none"
           />
           {value && (
             <button

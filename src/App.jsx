@@ -14,6 +14,9 @@ const Details = lazy(() => import('./pages/Details'));
 const Watch = lazy(() => import('./pages/Watch'));
 const Favorites = lazy(() => import('./pages/Favorites'));
 const ApiDebugger = lazy(() => import('./pages/ApiDebugger'));
+const TvShows = lazy(() => import('./pages/TvShows'));
+const Movies = lazy(() => import('./pages/Movies'));
+const Animation = lazy(() => import('./pages/Animation'));
 
 /* Page loading fallback */
 function PageLoader() {
@@ -59,6 +62,9 @@ export default function App() {
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/debug/api" element={<ApiDebugger />} />
                 <Route path="/staff/:staffId" element={<StaffPage />} />
+                <Route path="/tv-shows" element={<TvShows />} />
+                <Route path="/movies" element={<Movies />} />
+                <Route path="/animation" element={<Animation />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

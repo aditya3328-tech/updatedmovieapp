@@ -53,6 +53,9 @@ const ENDPOINTS = {
 
   /** Ranking list content by genreTop / ranking id */
   RANKING_CONTENT: "/ranking-list/content",
+
+  /** Filter subjects by type/genre/country/year/language/sort */
+  SUBJECT_FILTER: "/subject/filter",
 };
 
 // Validate all endpoints are properly formatted
