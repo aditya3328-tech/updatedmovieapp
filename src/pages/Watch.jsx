@@ -187,12 +187,15 @@ export default function Watch() {
     const fetchRecs = async () => {
       try {
         setRecLoading(true);
-
-        const items = await movieService.search('popular', 1);
-        setRecommendations(items || []);
-      } catch (err) {
-        console.error(err);
-        setRecommendations([]);
+        const items = await movieService.getRecommendations(details?.subjectId || subjectId);
+        setRecommendations(Array.isArray(items) ? items : []);
+      } catch {
+        try {
+          const fallback = await movieService.getRankingContent('4516404531735022304', 1, 12);
+          setRecommendations(fallback?.subjectList || []);
+        } catch {
+          setRecommendations([]);
+        }
       } finally {
         setRecLoading(false);
       }
@@ -310,6 +313,11 @@ export default function Watch() {
                 onPrevEpisode={episode > 1 ? prevEpisode : undefined}
                 onProgress={handleProgress}
                 title={episodeLabel}
+                dubs={details?.dubs}
+                selectedDub={selectedDub}
+                onAudioChange={(dub) => {
+                  window.location.href = `/watch/${dub.subjectId}`;
+                }}
               />
             )}
 
@@ -330,7 +338,10 @@ export default function Watch() {
                 </p>
                 <select
                   value={selectedDub?.subjectId || details.subjectId}
-                  onChange={handleLanguageChange}
+                  onChange={(e) => {
+                    const dub = details.dubs.find(d => String(d.subjectId) === e.target.value);
+                    if (dub) window.location.href = `/watch/${dub.subjectId}`;
+                  }}
                   className="watch-season-select"
                 >
                   {details.dubs.map((dub) => (

@@ -3,6 +3,7 @@ import QualitySelector from "./QualitySelector";
 import "plyr/dist/plyr.css";
 import Plyr from "plyr";
 import SubtitleSelector from "./SubtitleSelector";
+import AudioLanguageSelector from "./AudioLanguageSelector";
 
 /* SVG Icons */
 const PlayIcon = () => (
@@ -104,14 +105,10 @@ const SkipBackIcon = () => (
     width="20"
     height="20"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="white"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="white"
+    stroke="none"
   >
-    <polygon points="19 20 9 12 19 4 19 20" />
-    <line x1="5" y1="19" x2="5" y2="5" />
+    <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
   </svg>
 );
 const SkipForwardIcon = () => (
@@ -119,14 +116,22 @@ const SkipForwardIcon = () => (
     width="20"
     height="20"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="white"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="white"
+    stroke="none"
   >
-    <polygon points="5 4 15 12 5 20 5 4" />
-    <line x1="19" y1="5" x2="19" y2="19" />
+    <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+  </svg>
+);
+const Rewind10Icon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="white" stroke="none">
+    <path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+    <text x="10.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
+  </svg>
+);
+const Forward10Icon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="white" stroke="none">
+    <path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z" />
+    <text x="9.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
   </svg>
 );
 
@@ -155,6 +160,9 @@ export default function Player({
   onPrevEpisode,
   onProgress,
   title = "",
+  dubs,
+  selectedDub,
+  onAudioChange,
 }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
@@ -170,6 +178,10 @@ export default function Player({
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [skipIndicator, setSkipIndicator] = useState(null);
+  const [showLeftSkip, setShowLeftSkip] = useState(false);
+  const [showRightSkip, setShowRightSkip] = useState(false);
+  const lastClickRef = useRef({ time: 0, side: null });
 
   const videoUrl = selectedStream?.url || "";
   console.log("SELECTED STREAM", selectedStream);
@@ -236,6 +248,28 @@ export default function Player({
       video.pause();
       setPlaying(false);
     }
+    resetHideTimer();
+  };
+
+  const skipBackward = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = Math.max(0, video.currentTime - 10);
+    setCurrentTime(video.currentTime);
+    setSkipIndicator("backward");
+    clearTimeout(window._skipTimer);
+    window._skipTimer = setTimeout(() => setSkipIndicator(null), 600);
+    resetHideTimer();
+  };
+
+  const skipForward = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = Math.min(duration, video.currentTime + 10);
+    setCurrentTime(video.currentTime);
+    setSkipIndicator("forward");
+    clearTimeout(window._skipTimer);
+    window._skipTimer = setTimeout(() => setSkipIndicator(null), 600);
     resetHideTimer();
   };
 
@@ -335,9 +369,17 @@ export default function Player({
           break;
         case "ArrowLeft":
           video.currentTime = Math.max(0, video.currentTime - 10);
+          setCurrentTime(video.currentTime);
+          setSkipIndicator("backward");
+          clearTimeout(window._skipTimer);
+          window._skipTimer = setTimeout(() => setSkipIndicator(null), 600);
           break;
         case "ArrowRight":
           video.currentTime = Math.min(duration, video.currentTime + 10);
+          setCurrentTime(video.currentTime);
+          setSkipIndicator("forward");
+          clearTimeout(window._skipTimer);
+          window._skipTimer = setTimeout(() => setSkipIndicator(null), 600);
           break;
         case "ArrowUp":
           e.preventDefault();
@@ -355,6 +397,30 @@ export default function Player({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [duration, playing]);
 
+  const handleContainerClick = (e) => {
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const side = x < rect.width / 2 ? "left" : "right";
+    const now = Date.now();
+    const last = lastClickRef.current;
+
+    if (now - last.time < 350 && last.side === side) {
+      if (side === "left") {
+        skipBackward();
+        setShowLeftSkip(true);
+        setTimeout(() => setShowLeftSkip(false), 600);
+      } else {
+        skipForward();
+        setShowRightSkip(true);
+        setTimeout(() => setShowRightSkip(false), 600);
+      }
+      lastClickRef.current = { time: 0, side: null };
+    } else {
+      lastClickRef.current = { time: now, side };
+      togglePlay();
+    }
+  };
+
   const progress = duration ? (currentTime / duration) * 100 : 0;
   const bufferedProgress = duration ? (buffered / duration) * 100 : 0;
 
@@ -362,10 +428,10 @@ export default function Player({
     <div
       ref={containerRef}
       id="video-player-container"
-      className="relative w-full aspect-video bg-black rounded-[12px] overflow-hidden group cursor-pointer"
+      className="relative w-full aspect-video bg-black rounded-[12px] overflow-hidden group cursor-pointer select-none"
       onMouseMove={resetHideTimer}
       onMouseLeave={() => playing && setShowControls(false)}
-      onClick={togglePlay}
+      onClick={handleContainerClick}
     >
       {/* Video Element */}
       <video
@@ -404,24 +470,70 @@ export default function Player({
       {/* Center Play Button */}
       {!playing && (
         <div className="absolute inset-0 flex items-center justify-center z-10 animate-fade-in">
-          <div className="w-24 h-24 rounded-full bg-[#E50914] backdrop-blur-sm flex items-center justify-center shadow-2xl shadow-[#E50914]/50 hover:scale-125 hover:shadow-[#E50914]/70 transition-all duration-300 cursor-pointer">
-            <PlayIcon />
+          <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="white" className="drop-shadow-lg md:w-[56px] md:h-[56px]">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </div>
         </div>
       )}
 
+      {/* On-screen skip overlays */}
+      <div className={`absolute inset-0 z-10 pointer-events-none ${showControls ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}>
+        <button
+          onClick={(e) => { e.stopPropagation(); skipBackward(); }}
+          className={`absolute top-1/2 -translate-y-1/2 pointer-events-auto skip-screen-btn skip-screen-btn--left ${showLeftSkip ? "skip-screen-btn--active" : ""}`}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9">
+            <path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+            <text x="10.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
+          </svg>
+          <span className="skip-screen-label">-10s</span>
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); skipForward(); }}
+          className={`absolute top-1/2 -translate-y-1/2 pointer-events-auto skip-screen-btn skip-screen-btn--right ${showRightSkip ? "skip-screen-btn--active" : ""}`}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" opacity="0.9">
+            <path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z" />
+            <text x="9.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
+          </svg>
+          <span className="skip-screen-label">+10s</span>
+        </button>
+      </div>
+
       {/* Title Overlay */}
       {showControls && title && (
-        <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300">
-          <h3 className="text-white text-lg md:text-xl font-semibold truncate">
+        <div className="absolute top-0 left-0 right-0 px-2 md:px-3 pt-1.5 pb-4 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300">
+          <h3 className="text-white text-[10px] md:text-xs font-light truncate max-w-[50%] md:max-w-[40%] opacity-70 leading-tight">
             {title}
           </h3>
         </div>
       )}
 
+      {/* Skip Indicator */}
+      {skipIndicator && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <div className={`skip-indicator ${skipIndicator === "backward" ? "skip-indicator--backward" : "skip-indicator--forward"}`}>
+            {skipIndicator === "backward" ? (
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                <path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+                <text x="10.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
+              </svg>
+            ) : (
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                <path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z" />
+                <text x="9.5" y="15" fontSize="7" fontWeight="700" fill="white">10</text>
+              </svg>
+            )}
+            <span className="skip-indicator-text">10s</span>
+          </div>
+        </div>
+      )}
+
       {/* Controls Overlay */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-20 player-controls px-3 md:px-4 py-3 md:py-4 transition-opacity duration-300 bg-black/75 backdrop-blur-[10px] ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute bottom-0 left-0 right-0 z-20 player-controls px-3 md:px-4 py-2 md:py-3 transition-opacity duration-300 bg-black/75 backdrop-blur-[10px] ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -446,11 +558,11 @@ export default function Player({
         <div className="flex items-center justify-between gap-2">
           {/* Left Controls */}
           <div className="flex items-center gap-1 md:gap-2">
-            {/* Previous */}
+            {/* Previous Episode */}
             {onPrevEpisode && (
               <button
                 onClick={onPrevEpisode}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1.5 md:p-2 rounded-lg hover:bg-white/10 transition-colors"
                 id="prev-episode-btn"
                 title="Previous Episode"
               >
@@ -458,21 +570,41 @@ export default function Player({
               </button>
             )}
 
+            {/* Rewind 10s */}
+            <button
+              onClick={(e) => { e.stopPropagation(); skipBackward(); }}
+              className="p-1.5 md:p-2 rounded-lg hover:bg-white/10 transition-colors"
+              id="rewind-10s-btn"
+              title="Rewind 10 seconds"
+            >
+              <Rewind10Icon />
+            </button>
+
             {/* Play/Pause */}
             <button
               onClick={togglePlay}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 md:p-2 rounded-lg hover:bg-white/10 transition-colors"
               id="play-pause-btn"
               title={playing ? "Pause" : "Play"}
             >
               {playing ? <PauseIcon /> : <PlayIcon />}
             </button>
 
-            {/* Next */}
+            {/* Forward 10s */}
+            <button
+              onClick={(e) => { e.stopPropagation(); skipForward(); }}
+              className="p-1.5 md:p-2 rounded-lg hover:bg-white/10 transition-colors"
+              id="forward-10s-btn"
+              title="Forward 10 seconds"
+            >
+              <Forward10Icon />
+            </button>
+
+            {/* Next Episode */}
             {onNextEpisode && (
               <button
                 onClick={onNextEpisode}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1.5 md:p-2 rounded-lg hover:bg-white/10 transition-colors"
                 id="next-episode-btn"
                 title="Next Episode"
               >
@@ -569,6 +701,13 @@ export default function Player({
               captions={captions}
               selectedCaption={selectedCaption}
               onSelect={onCaptionChange}
+            />
+
+            {/* Audio */}
+            <AudioLanguageSelector
+              dubs={dubs}
+              selectedDub={selectedDub}
+              onChange={onAudioChange}
             />
 
             {/* PiP */}

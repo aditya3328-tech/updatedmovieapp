@@ -9,7 +9,6 @@ import { optimizeImage } from "../utils/imageOptimizer";
 
 const AUTO_SLIDE_MS = 5000;
 
-
 function preloadImage(url) {
   if (!url) return;
   const img = new Image();
@@ -22,39 +21,50 @@ export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageSources, setImageSources] = useState({});
   const pauseAutoRef = useRef(false);
-  const abortRef = useRef(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    abortRef.current = new AbortController();
+    mountedRef.current = true;
 
     (async () => {
       try {
         setLoading(true);
         const items = await movieService.getHomeBannerItems({
-          signal: abortRef.current.signal,
+          priority: "critical",
         });
+
+        if (!mountedRef.current) return;
+
         setSlides(items);
         setCurrentIndex(0);
 
         const sources = {};
         items.forEach((item, index) => {
-          sources[index] = optimizeImage(item?.image?.url, "banner") || HERO_FALLBACK_IMAGE;
+          sources[index] =
+            optimizeImage(item?.image?.url, "banner") || HERO_FALLBACK_IMAGE;
         });
         setImageSources(sources);
 
-        if (items[0]?.image?.url) preloadImage(optimizeImage(items[0].image.url, "banner"));
-        if (items[1]?.image?.url) preloadImage(optimizeImage(items[1].image.url, "banner"));
-      } catch (err) {
-        if (err.name !== "AbortError" && err.code !== "ERR_CANCELED") {
-          console.error("[HeroBanner] Failed to load banners:", err);
+        if (items[0]?.image?.url) {
+          preloadImage(optimizeImage(items[0].image.url, "banner"));
         }
+        if (items[1]?.image?.url) {
+          preloadImage(optimizeImage(items[1].image.url, "banner"));
+        }
+      } catch (err) {
+        if (!mountedRef.current) return;
+        console.error("[HeroBanner] Failed to load banners:", err);
         setSlides([]);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
     })();
 
-    return () => abortRef.current?.abort();
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const goTo = useCallback(
@@ -114,41 +124,39 @@ export default function HeroBanner() {
   }
 
   return (
-  <motion.section
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className="hero-banner relative w-screen h-[60vh] md:h-[75vh] lg:h-[88vh] overflow-hidden bg-[#05070d] mt-[70px]"
-    aria-roledescription="carousel"
-    aria-label="Featured titles"
-  >
-    <HeroSlide
-      key={slides[currentIndex]?.subjectId || currentIndex}
-      item={slides[currentIndex]}
-      isActive={true}
-      priority={true}
-      imageSrc={
-        imageSources[currentIndex] ||
-        optimizeImage(slides[currentIndex]?.image?.url, "banner") ||
-        HERO_FALLBACK_IMAGE
-      }
-      originalImageSrc={slides[currentIndex]?.image?.url}
-      onImageError={() =>
-        handleImageError(currentIndex)
-      }
-    />
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="hero-banner relative w-screen h-[60vh] md:h-[75vh] lg:h-[88vh] overflow-hidden bg-[#05070d] mt-[70px]"
+      aria-roledescription="carousel"
+      aria-label="Featured titles"
+    >
+      <HeroSlide
+        key={slides[currentIndex]?.subjectId || currentIndex}
+        item={slides[currentIndex]}
+        isActive={true}
+        priority={true}
+        imageSrc={
+          imageSources[currentIndex] ||
+          optimizeImage(slides[currentIndex]?.image?.url, "banner") ||
+          HERO_FALLBACK_IMAGE
+        }
+        originalImageSrc={slides[currentIndex]?.image?.url}
+        onImageError={() => handleImageError(currentIndex)}
+      />
 
-    <HeroArrows
-      onPrev={goPrev}
-      onNext={goNext}
-      visible={slides.length > 1}
-    />
+      <HeroArrows
+        onPrev={goPrev}
+        onNext={goNext}
+        visible={slides.length > 1}
+      />
 
-    <HeroDots
-      count={slides.length}
-      current={currentIndex}
-      onSelect={goTo}
-    />
-  </motion.section>
-);
+      <HeroDots
+        count={slides.length}
+        current={currentIndex}
+        onSelect={goTo}
+      />
+    </motion.section>
+  );
 }

@@ -1,40 +1,40 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import FilterPanel from "../components/FilterPanel";
 import SubjectGrid from "../components/SubjectGrid";
 import useSubjectFilter from "../hooks/useSubjectFilter";
+import { getDefaultFilters, SUBJECT_TYPE } from "../utils/contentFilter";
 
-const DEFAULT_FILTERS = {
-  genre: "All",
-  country: "All",
-  year: "All",
-  language: "All",
-  sort: "forYou",
-};
+const ANIMATION_COUNTRIES = [
+  "All", "United States", "United Kingdom", "France",
+  "Japan", "China", "Korea", "Other",
+];
 
 /**
  * BrowsePage — Reusable filtered browse page for TV Shows, Movies, Animation.
  *
  * @param {Object} props
- * @param {number} props.subjectType  1=TV, 2=Movie, 3=Animation
+ * @param {number} props.subjectType  1=Movie, 2=TV Series, 3=Animation
  * @param {string} props.title        Page heading (e.g. "TV Shows")
  * @param {string} props.subtitle     Short description
  */
 export default function BrowsePage({ subjectType, title, subtitle }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const contentDefaults = useMemo(() => getDefaultFilters(subjectType), [subjectType]);
 
   /* ── Sync filters to/from URL query params ── */
   const filtersFromUrl = useCallback(() => {
-    const isAnimation = subjectType === 3;
+    const isAnimation = subjectType === SUBJECT_TYPE.ANIMATION;
+    const def = contentDefaults;
     return {
-      genre:    isAnimation ? "All" : (searchParams.get("genre")    || "All"),
-      country:  searchParams.get("country")  || "All",
-      year:     searchParams.get("year")     || "All",
-      language: isAnimation ? "All" : (searchParams.get("language") || "All"),
-      sort:     searchParams.get("sort")     || "forYou",
+      genre:    isAnimation ? "All" : (searchParams.get("genre")    || def.genre),
+      country:  searchParams.get("country")  || def.country,
+      year:     searchParams.get("year")     || def.year,
+      language: searchParams.get("language") || def.language,
+      sort:     searchParams.get("sort")     || def.sort,
     };
-  }, [searchParams, subjectType]);
+  }, [searchParams, subjectType, contentDefaults]);
 
   const [filters, setFilters] = useState(filtersFromUrl);
 
@@ -42,7 +42,7 @@ export default function BrowsePage({ subjectType, title, subtitle }) {
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
     const params = {};
-    const isAnimation = subjectType === 3;
+    const isAnimation = subjectType === SUBJECT_TYPE.ANIMATION;
     if (!isAnimation && newFilters.genre    !== "All") params.genre    = newFilters.genre;
     if (newFilters.country  !== "All") params.country  = newFilters.country;
     if (newFilters.year     !== "All") params.year     = newFilters.year;
@@ -52,8 +52,8 @@ export default function BrowsePage({ subjectType, title, subtitle }) {
   }, [setSearchParams, subjectType]);
 
   /* ── Data fetching via custom hook ── */
-  const { items, pager, loading, error, initialLoad, loadMore } =
-    useSubjectFilter({ subjectType, filters });
+  const { items, pager, loading, error, initialLoad, loadMore, fallbackActive } =
+    useSubjectFilter({ subjectType, filters, contentDefaults });
 
   /* ── Infinite scroll via Intersection Observer ── */
   const sentinelRef = useRef(null);
@@ -78,8 +78,8 @@ export default function BrowsePage({ subjectType, title, subtitle }) {
   ).length;
 
   const resetFilters = useCallback(() => {
-    handleFiltersChange(DEFAULT_FILTERS);
-  }, [handleFiltersChange]);
+    handleFiltersChange(contentDefaults);
+  }, [handleFiltersChange, contentDefaults]);
 
   return (
     <motion.div
@@ -111,12 +111,20 @@ export default function BrowsePage({ subjectType, title, subtitle }) {
         </div>
       </header>
 
+      {/* ── Fallback notice ── */}
+      {fallbackActive && (
+        <div className="browse-fallback-notice">
+          Showing broader results — no Hindi content found for this category.
+        </div>
+      )}
+
       {/* ── Filter Panel ── */}
       <FilterPanel
         filters={filters}
         onChange={handleFiltersChange}
         hideGenre={subjectType === 3}
         hideLanguage={subjectType === 3}
+        countries={subjectType === SUBJECT_TYPE.ANIMATION ? ANIMATION_COUNTRIES : undefined}
       />
 
       {/* ── Error Banner ── */}

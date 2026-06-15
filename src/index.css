@@ -1029,6 +1029,65 @@ small {
       transparent 100%);
 }
 
+/* Skip indicator animation */
+.skip-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.skip-indicator-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  opacity: 0.8;
+}
+
+.skip-indicator--backward {
+  animation: skipPopBack 0.6s ease-out forwards;
+}
+
+.skip-indicator--forward {
+  animation: skipPopForward 0.6s ease-out forwards;
+}
+
+@keyframes skipPopBack {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateX(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.1) translateX(-10px);
+  }
+  40% {
+    transform: scale(1) translateX(-20px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateX(-30px);
+  }
+}
+
+@keyframes skipPopForward {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateX(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.1) translateX(10px);
+  }
+  40% {
+    transform: scale(1) translateX(20px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateX(30px);
+  }
+}
+
 /* ========================================
    Horizontal Scroll
    ======================================== */
@@ -1285,6 +1344,21 @@ video::cue {
 .browse-reset-btn:hover {
   background: rgba(229, 9, 20, 0.15);
   border-color: rgba(229, 9, 20, 0.6);
+}
+
+.browse-fallback-notice {
+  margin: 16px 20px 0;
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+  font-size: 0.825rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 .browse-error {
@@ -2381,5 +2455,470 @@ video::cue {
   .dp-back-btn {
     top: 14px;
     left: 14px;
+  }
+}
+
+/* ========================================
+   Staff / Actor Page
+   ======================================== */
+
+.staff-page-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px 32px;
+}
+
+@media (min-width: 640px) {
+  .staff-page-inner {
+    padding: 28px 24px 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .staff-page-inner {
+    padding: 32px 32px 48px;
+  }
+}
+
+/* Profile header */
+.staff-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 36px;
+}
+
+.staff-profile--skeleton {
+  border-bottom: none;
+}
+
+.staff-profile-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.staff-profile-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.staff-profile-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.25), rgba(99, 102, 241, 0.2));
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.staff-profile-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.staff-profile-name {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.staff-profile-role {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.staff-profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+@media (min-width: 640px) {
+  .staff-profile {
+    gap: 24px;
+    padding-bottom: 40px;
+    margin-bottom: 44px;
+  }
+
+  .staff-profile-avatar {
+    width: 104px;
+    height: 104px;
+  }
+
+  .staff-profile-name {
+    font-size: 2rem;
+  }
+}
+
+/* Section headers */
+.staff-section {
+  margin-bottom: 48px;
+}
+
+.staff-section--primary {
+  margin-bottom: 56px;
+}
+
+.staff-section--related {
+  margin-bottom: 24px;
+  padding-top: 8px;
+}
+
+.staff-section-header {
+  margin-bottom: 20px;
+}
+
+.staff-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.staff-section-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.staff-section-accent {
+  margin-top: 10px;
+  height: 3px;
+  width: 48px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e50914, #6366f1);
+}
+
+.staff-section-accent--muted {
+  width: 36px;
+  background: linear-gradient(90deg, rgba(229, 9, 20, 0.6), rgba(99, 102, 241, 0.4));
+}
+
+.staff-empty-message {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 24px 0;
+}
+
+/* Movies & Shows grid */
+.staff-films-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 10px;
+}
+
+.staff-film-item {
+  min-width: 0;
+}
+
+.staff-film-skeleton {
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+}
+
+@media (min-width: 480px) {
+  .staff-films-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .staff-films-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px 14px;
+  }
+
+  .staff-section-title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .staff-films-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 22px 16px;
+  }
+}
+
+/* Staff page movie card overrides */
+.staff-page .movie-card-v2 {
+  gap: 8px;
+  width: 100%;
+}
+
+.staff-page .movie-card-poster {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.staff-page .movie-card-image {
+  border-radius: 10px;
+}
+
+.staff-page .movie-card-v2:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.staff-page .movie-card-v2:hover .movie-card-poster {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
+.staff-page .movie-card-v2:hover .movie-card-image {
+  transform: scale(1.04);
+}
+
+.staff-page .movie-card-title {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: calc(1.35em * 2);
+  max-height: calc(1.35em * 2);
+}
+
+@media (min-width: 768px) {
+  .staff-page .movie-card-title {
+    font-size: 12px;
+  }
+}
+
+/* Similar actors row */
+.staff-actors-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.staff-actor-card {
+  flex-shrink: 0;
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform 0.25s ease;
+}
+
+.staff-actor-card:hover {
+  transform: translateY(-3px);
+}
+
+.staff-actor-card:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.staff-actor-avatar-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.staff-actor-card:hover .staff-actor-avatar-wrap {
+  border-color: rgba(229, 9, 20, 0.55);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.staff-actor-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.staff-actor-name {
+  margin-top: 8px;
+  width: 100%;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.92);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: calc(1.3em * 2);
+  max-height: calc(1.3em * 2);
+  word-break: break-word;
+}
+
+.staff-actor-role {
+  margin-top: 3px;
+  width: 100%;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.42);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .staff-actors-row {
+    gap: 16px;
+  }
+
+  .staff-actor-card {
+    width: 84px;
+  }
+
+  .staff-actor-avatar-wrap {
+    width: 64px;
+    height: 64px;
+  }
+
+  .staff-actor-name {
+    font-size: 0.72rem;
+  }
+
+  .staff-actor-role {
+    font-size: 0.65rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .staff-actor-card {
+    width: 88px;
+  }
+
+  .staff-actor-avatar-wrap {
+    width: 68px;
+    height: 68px;
+  }
+}
+
+/* On-screen skip screen button */
+.skip-screen-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  outline: none;
+}
+
+.skip-screen-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.skip-screen-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.skip-screen-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.skip-screen-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: white;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.skip-screen-btn--active {
+  animation: skipScreenPulse 0.6s ease-out forwards;
+}
+
+@keyframes skipScreenPulse {
+  0% {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-50%) scale(1);
+  }
+  15% {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-50%) scale(1.2);
+  }
+  30% {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-50%) scale(1);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.skip-screen-btn--left {
+  left: 25%;
+}
+
+.skip-screen-btn--right {
+  right: 25%;
+}
+
+@media (min-width: 768px) {
+  .skip-screen-btn {
+    width: 80px;
+    height: 80px;
+  }
+  .skip-screen-btn svg {
+    width: 32px;
+    height: 32px;
+  }
+  .skip-screen-label {
+    font-size: 0.7rem;
+  }
+  .skip-screen-btn--left {
+    left: 28%;
+  }
+  .skip-screen-btn--right {
+    right: 28%;
   }
 }

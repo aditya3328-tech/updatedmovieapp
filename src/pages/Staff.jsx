@@ -1,17 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import MovieCard from "../components/MovieCard";
 import movieService from "../services/movieService";
 import {
   fallbackToOriginalImage,
   getOptimizedImageProps,
 } from "../utils/imageOptimizer";
-
-const twoLineClamp = {
-  display: "-webkit-box",
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-};
 
 export default function StaffPage() {
   const { staffId } = useParams();
@@ -48,112 +43,181 @@ export default function StaffPage() {
     }
   };
 
+  const currentActor = useMemo(
+    () =>
+      relatedStaff.find(
+        (actor) => String(actor.staffId) === String(staffId),
+      ),
+    [relatedStaff, staffId],
+  );
+
+  const similarActors = useMemo(
+    () =>
+      relatedStaff.filter(
+        (actor) => String(actor.staffId) !== String(staffId),
+      ),
+    [relatedStaff, staffId],
+  );
+
+  const actorName = currentActor?.name || "Actor";
+  const actorRole =
+    currentActor?.staffType?.join(", ") || "Actor";
+  const actorAvatar = currentActor?.avatarUrl;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05070d] flex items-center justify-center text-white">
-        Loading...
+      <div className="staff-page min-h-screen bg-[#05070d] text-white pt-[90px] md:pt-[80px]">
+        <div className="staff-page-inner">
+          <header className="staff-profile staff-profile--skeleton">
+            <div className="staff-profile-avatar skeleton" />
+            <div className="staff-profile-meta">
+              <div className="h-8 w-48 rounded-lg skeleton mb-3" />
+              <div className="h-4 w-32 rounded skeleton" />
+            </div>
+          </header>
+
+          <section className="staff-section">
+            <div className="h-7 w-40 rounded-lg skeleton mb-6" />
+            <div className="staff-films-grid">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="staff-film-skeleton skeleton" />
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#05070d] text-white">
-      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
-        <div className="flex items-center gap-5 sm:gap-6">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-4xl flex-shrink-0">
-            Actor
-          </div>
-
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black">
-              Actor
-            </h1>
-
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 text-sm text-gray-300">
-              <span>{movies.length} Titles</span>
-              <span>{relatedStaff.length} Related Artists</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <section className="max-w-7xl mx-auto mt-6 mb-10">
-        <h2 className="text-[22px] font-bold mt-6 mb-[18px] pl-4 sm:pl-6 lg:pl-8 text-white">
-          Similar Actors
-        </h2>
-
-        <div className="mt-2.5 mb-10 flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-2">
-          {relatedStaff.map((actor) => (
-            <div
-              key={actor.staffId}
-              onClick={() =>
-                navigate(`/staff/${actor.staffId}`)
-              }
-              className="w-[110px] flex-shrink-0 cursor-pointer flex flex-col items-center text-center group"
-            >
+    <div className="staff-page min-h-screen bg-[#05070d] text-white pt-[90px] md:pt-[80px] pb-20">
+      <div className="staff-page-inner">
+        <motion.header
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="staff-profile"
+        >
+          <div className="staff-profile-avatar-wrap">
+            {actorAvatar ? (
               <img
-                {...getOptimizedImageProps(actor.avatarUrl, "avatar")}
-                alt={actor.name}
-                loading="lazy"
+                {...getOptimizedImageProps(actorAvatar, "avatar")}
+                alt={actorName}
+                loading="eager"
                 decoding="async"
-                className="w-20 h-20 sm:w-[90px] sm:h-[90px] rounded-full object-cover border-2 border-white/[0.08] transition-all duration-300 group-hover:scale-105 group-hover:border-red-500/70"
-                onError={(event) => fallbackToOriginalImage(event, actor.avatarUrl)}
+                className="staff-profile-avatar"
+                onError={(event) =>
+                  fallbackToOriginalImage(event, actorAvatar)
+                }
               />
-
-              <h3
-                className="mt-2.5 text-sm font-semibold leading-[1.3] text-white"
-                style={twoLineClamp}
-              >
-                {actor.name}
-              </h3>
-
-              <p className="mt-1 text-xs text-white/70">
-                {actor.staffType?.join(", ") || "Actor"}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto mt-8 mb-6 px-4 sm:px-6 lg:px-8 pb-16">
-        <h2 className="text-[22px] font-bold mt-8 mb-5 text-white">
-          Movies & Shows
-        </h2>
-
-        <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(140px,140px))] sm:grid-cols-[repeat(auto-fill,minmax(150px,150px))] lg:grid-cols-[repeat(auto-fill,minmax(160px,160px))] gap-x-4 gap-y-6">
-          {movies.map((movie) => (
-            <div
-              key={movie.subjectId}
-              onClick={() =>
-                navigate(`/details/${movie.subjectId}`)
-              }
-              className="w-[140px] sm:w-[150px] lg:w-[160px] cursor-pointer group"
-            >
-              <div className="relative overflow-hidden rounded-lg bg-white/5">
-                <img
-                  {...getOptimizedImageProps(movie.cover?.url, "poster")}
-                  alt={movie.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(event) => fallbackToOriginalImage(event, movie.cover?.url)}
-                />
-
-                <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-yellow-400 text-xs font-bold">
-                  {movie.imdbRatingValue || "N/A"}
-                </div>
+            ) : (
+              <div className="staff-profile-avatar staff-profile-avatar--placeholder">
+                <span aria-hidden>{actorName.charAt(0)}</span>
               </div>
+            )}
+          </div>
 
-              <h3
-                className="mt-2 text-sm sm:text-base font-semibold leading-[1.3] text-gray-100"
-                style={twoLineClamp}
-              >
-                {movie.title}
-              </h3>
+          <div className="staff-profile-meta">
+            <h1 className="staff-profile-name">{actorName}</h1>
+            <p className="staff-profile-role">{actorRole}</p>
+            <div className="staff-profile-stats">
+              <span>{movies.length} Titles</span>
+              {similarActors.length > 0 && (
+                <span>{similarActors.length} Related Artists</span>
+              )}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </motion.header>
+
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.05 }}
+          className="staff-section staff-section--primary"
+          aria-label="Movies and shows"
+        >
+          <div className="staff-section-header">
+            <h2 className="staff-section-title">
+              Movies &amp; Shows
+              {movies.length > 0 && (
+                <span className="staff-section-count">{movies.length}</span>
+              )}
+            </h2>
+            <div className="staff-section-accent" />
+          </div>
+
+          {movies.length > 0 ? (
+            <div className="staff-films-grid">
+              {movies.map((movie, index) => (
+                <motion.div
+                  key={movie.subjectId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.3) }}
+                  className="staff-film-item"
+                >
+                  <MovieCard item={movie} layout="grid" />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="staff-empty-message">
+              No titles found for this artist.
+            </p>
+          )}
+        </motion.section>
+
+        {similarActors.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            viewport={{ once: true, margin: "-40px" }}
+            className="staff-section staff-section--related"
+            aria-label="Similar actors"
+          >
+            <div className="staff-section-header">
+              <h2 className="staff-section-title">
+                Similar Actors
+                <span className="staff-section-count">
+                  {similarActors.length}
+                </span>
+              </h2>
+              <div className="staff-section-accent staff-section-accent--muted" />
+            </div>
+
+            <div className="staff-actors-row scroll-row">
+              {similarActors.map((actor) => (
+                <button
+                  key={actor.staffId}
+                  type="button"
+                  onClick={() => navigate(`/staff/${actor.staffId}`)}
+                  className="staff-actor-card"
+                >
+                  <div className="staff-actor-avatar-wrap">
+                    <img
+                      {...getOptimizedImageProps(actor.avatarUrl, "avatar")}
+                      alt={actor.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="staff-actor-avatar"
+                      onError={(event) =>
+                        fallbackToOriginalImage(event, actor.avatarUrl)
+                      }
+                    />
+                  </div>
+
+                  <span className="staff-actor-name">{actor.name}</span>
+
+                  <span className="staff-actor-role">
+                    {actor.staffType?.join(", ") || "Actor"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.section>
+        )}
+      </div>
     </div>
   );
 }

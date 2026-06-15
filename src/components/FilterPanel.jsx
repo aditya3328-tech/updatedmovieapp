@@ -73,11 +73,13 @@ const FilterRow = memo(function FilterRow({ label, options, value, onChange, isS
 });
 
 /* ── FilterPanel ── */
-function FilterPanel({ filters, onChange, hideGenre, hideLanguage }) {
+function FilterPanel({ filters, onChange, hideGenre, hideLanguage, countries }) {
   const set = useCallback(
     (key) => (val) => onChange({ ...filters, [key]: val }),
     [filters, onChange],
   );
+
+  const countryOptions = countries || COUNTRIES;
 
   return (
     <aside className="filter-panel" aria-label="Browse filters">
@@ -91,7 +93,7 @@ function FilterPanel({ filters, onChange, hideGenre, hideLanguage }) {
       )}
       <FilterRow
         label="Country"
-        options={COUNTRIES}
+        options={countryOptions}
         value={filters.country || "All"}
         onChange={set("country")}
       />

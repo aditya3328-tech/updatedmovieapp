@@ -1,14 +1,16 @@
 import apiClient, { log } from "../api/axios";
 import ENDPOINTS from "../api/endpoints";
+import { apiScheduler } from "./request";
 
 /* ========================================
    Movie Service — All API interactions
    Production-ready with error handling
    ======================================== */
-let homeCache = null;
-let homeCacheTime = 0;
 
 const HOME_CACHE_DURATION = 5 * 60 * 1000; // 5 min
+
+const isAbortError = (error) =>
+  error?.name === "AbortError" || error?.code === "ERR_CANCELED";
 const MAX_SUGGESTIONS = 10;
 
 const toSuggestionWords = (items = []) =>
@@ -320,17 +322,32 @@ const movieService = {
    * Home feed (banner + operating sections)
    * @param {Object} options
    * @param {AbortSignal} options.signal
+   * @param {boolean} options.bypassScheduler - skip queue/cache (internal)
+   * @param {string} options.priority - scheduler priority
    */
-  getHome: async ({ signal } = {}) => {
-    try {
+  getHome: async ({ signal, bypassScheduler, priority = "critical" } = {}) => {
+    const fetchHome = async ({ signal: requestSignal } = {}) => {
       const response = await apiClient.get(ENDPOINTS.HOME, {
         params: { host: "movie-box.co" },
+        signal: requestSignal ?? signal,
+      });
+      return response?.data?.data ?? null;
+    };
+
+    try {
+      if (bypassScheduler) {
+        return await fetchHome({ signal });
+      }
+
+      return await apiScheduler.execute({
+        key: "home:movie-box.co",
+        fetcher: fetchHome,
+        priority,
+        cacheTTL: HOME_CACHE_DURATION,
         signal,
       });
-
-      return response?.data?.data ?? null;
     } catch (error) {
-      if (error.name !== "AbortError" && error.code !== "ERR_CANCELED") {
+      if (!isAbortError(error)) {
         log("error", "[movieService] getHome() failed", error.message);
       }
       throw error;
@@ -340,8 +357,8 @@ const movieService = {
   /**
    * Hero carousel items from operatingList BANNER section only
    */
-  getHomeBannerItems: async ({ signal } = {}) => {
-    const data = await movieService.getHome({ signal });
+  getHomeBannerItems: async ({ signal, priority = "critical" } = {}) => {
+    const data = await movieService.getHome({ signal, priority });
     const operatingList = data?.operatingList ?? [];
     const bannerSection = operatingList.find((item) => item.type === "BANNER");
     const items = bannerSection?.banner?.items ?? [];
@@ -382,8 +399,13 @@ getStaffSubjects: async (
 
   return response?.data?.data?.items || [];
 },
-  getRankingContent: async (rankingId,page = 1,perPage = 18) => {
-    try {
+  getRankingContent: async (
+    rankingId,
+    page = 1,
+    perPage = 18,
+    { signal, bypassScheduler, priority = "medium" } = {},
+  ) => {
+    const fetchRanking = async ({ signal: requestSignal } = {}) => {
       log(
         "debug",
         `[movieService] getRankingContent() id=${rankingId}, page=${page}, perPage=${perPage}`,
@@ -391,15 +413,32 @@ getStaffSubjects: async (
 
       const response = await apiClient.get(ENDPOINTS.RANKING_CONTENT, {
         params: { id: rankingId, page, perPage },
+        signal: requestSignal ?? signal,
       });
 
       return response?.data?.data;
+    };
+
+    try {
+      if (bypassScheduler) {
+        return await fetchRanking({ signal });
+      }
+
+      return await apiScheduler.execute({
+        key: `ranking:${rankingId}:${page}:${perPage}`,
+        fetcher: fetchRanking,
+        priority,
+        cacheTTL: HOME_CACHE_DURATION,
+        signal,
+      });
     } catch (error) {
-      log(
-        "error",
-        `[movieService] getRankingContent() failed for id: ${rankingId}`,
-        error.message,
-      );
+      if (!isAbortError(error)) {
+        log(
+          "error",
+          `[movieService] getRankingContent() failed for id: ${rankingId}`,
+          error.message,
+        );
+      }
       throw error;
     }
   },
@@ -407,7 +446,7 @@ getStaffSubjects: async (
   /**
    * Filter subjects (TV Shows, Movies, Animation) by genre/country/year/language/sort
    * @param {Object} params
-   * @param {number} params.subjectType - 1=TV, 2=Movie, 3=Animation
+   * @param {number} params.subjectType - 1=Movie, 2=TV Series, 3=Animation
    * @param {string} [params.genre]
    * @param {string} [params.country]
    * @param {string} [params.year]
@@ -446,7 +485,7 @@ getStaffSubjects: async (
       } else if (genre && genre !== "All") {
         body.genre = genre;
       }
-      if (country && country !== "All") body.countryName = country;
+      if (country && country !== "All") body.country = country;
       if (year && year !== "All") body.year = year;
       if (language && language !== "All") body.language = language;
 
